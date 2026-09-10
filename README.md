@@ -32,6 +32,15 @@ npm run dev
 `npm run tours` looks for the viewer at `../LESCO-VIEWER`; override with
 `LESCO_VIEWER=<path>`.
 
+## Install scripts
+
+npm 11.6+ will not run a dependency's install script until the project says so,
+and esbuild — which Vite pulls in — has one: it puts the platform binary in
+`node_modules/esbuild/bin`. `allowScripts` in `package.json` approves that one
+script; without it `npm install` warns on every run. The entry is pinned to a
+version, so when Vite moves to a new esbuild the warning comes back and
+`npm approve-scripts esbuild` clears it once you have looked at what changed.
+
 ## Deploying
 
 Pushing to `main` builds the page and publishes it to GitHub Pages
