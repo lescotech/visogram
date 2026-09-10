@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "biotique",
+    "obra": "Biotique",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "tipo": "residencia",
+    "ano": 2026,
+    "escritorio": "Setin",
+    "cena": "Hall de entrada",
+    "cenas": 15,
+    "vista": {
+      "yaw": 0.628,
+      "pitch": 0.7762713201935924,
+      "fov": 76
+    },
+    "luma": 97,
+    "src": "/tours/biotique.webp",
+    "srcSmall": "/tours/biotique@1280.webp",
+    "lqip": "data:image/webp;base64,UklGRvgAAABXRUJQVlA4IOwAAAAwBwCdASowABgAPu1kqU6ppaOiMBqoATAdiUAWnQdRL+v7NayxEoXUX0qdf8ezfEyYdBaLW1cTHoi6yiiGRKX1ndgA/oum/jtjS2YCIgT6JAWlxB9MGkiCmYFefsFWB38kRJgxWU2Z+1q8FQquM/cz3QXKU4FMcn81iTlolaRnbWYnLUH7dYiL78fS5VHPOw6R/USLYAHrbVmIBKNDe3W7/AiB609F2KxuVB48K3Dk1ACaI5VlmF6PuQO64Ttz4QL+xnQUUCE/almJRJi/HgzT7O3GquQjVspXF29DyiS/+PadDKpSjhB1ZygAAA=="
+  },
+  {
+    "slug": "lavvi",
+    "obra": "Lavvi",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "tipo": "comercial",
+    "ano": 2026,
+    "escritorio": "Lavvi",
+    "cena": "Entrada",
+    "cenas": 4,
+    "vista": {
+      "yaw": 0,
+      "pitch": 0,
+      "fov": 76
+    },
+    "luma": 138,
+    "src": "/tours/lavvi.webp",
+    "srcSmall": "/tours/lavvi@1280.webp",
+    "lqip": "data:image/webp;base64,UklGRvIAAABXRUJQVlA4IOYAAADwBgCdASowABgAPu1gq02ppSQiMBqqqTAdiWQAnTMABvgWzORp4mtiMpHGJqfiwc7POwlrvizOUQOPIQiP356wAPxPGPiu5BDzjGjJftVgk9d7DyESslgs6ZJiJooo6cWTYL6Z9RHBBJTyrkLYOCWUGuKHuqwLid8AuDPMJB38Dkp6a8CXZdiU00IU/yZg/DXkq439bu6S6xr3K6zYUUMIXYNtw5FNsPgBeJGV4hWN5fsi/VsAwIPc+L90y58QYaHH/tCSXk0NPQyNAmJ+P2hpv9sSt+VsuCF0T8iSJgCiL0D8owAAAA=="
+  },
+  {
+    "slug": "alpha-one",
+    "obra": "Alpha One",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "tipo": "residencia",
+    "ano": 2026,
+    "escritorio": "Construcompany",
+    "cena": "Ambiente 1",
+    "cenas": 9,
+    "vista": {
+      "yaw": -0.1933848915271479,
+      "pitch": -0.014554252843180637,
+      "fov": 100
+    },
+    "luma": 157,
+    "src": "/tours/alpha-one.webp",
+    "srcSmall": "/tours/alpha-one@1280.webp",
+    "lqip": "data:image/webp;base64,UklGRsoAAABXRUJQVlA4IL4AAAAQBgCdASowABgAPu1qq0+ppiOiMBVYATAdiWMAzFgLMCSI1SSugxLVJ8qBtdhWU+Lv8pvtVann6dQA/sMEoNLActLG3vboSzwsn5iYmUKIKgDSYzfBkwxG48ix0BauBZsBEeVJWaM2JXe9k1uor/twSC2ZmaokJp7Lc9Zs4n2G+Qvsly2rydaku/0fBl1WNNVSuo38fhRy1nBMS24q2YPSV/f5Jbe0j9MdfIl+65COMyHzHDm8tU3/caH33AAA"
+  },
+  {
+    "slug": "jha-boutique",
+    "obra": "JHA Boutique",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "tipo": "comercial",
+    "ano": 2026,
+    "escritorio": null,
+    "cena": "Ambiente 2",
+    "cenas": 2,
+    "vista": {
+      "yaw": -0.27615523770356537,
+      "pitch": 0.4010706084782076,
+      "fov": 76
+    },
+    "luma": 147,
+    "src": "/tours/jha-boutique.webp",
+    "srcSmall": "/tours/jha-boutique@1280.webp",
+    "lqip": "data:image/webp;base64,UklGRtQAAABXRUJQVlA4IMgAAABQBgCdASowABgAPu1kq06ppaQiMBVaqTAdiUAXYAW+V6kciuUddUuKzaoouwa+d7xKIL63FVQNETPWwAD93Vk1b16sSPVvdb52t+bUtgPZ73lP07OSJ6S2Ph0SeFsTjB275zG+kq71cc6KpX6PnFbiwcCEnHHHTftRJHvN7biQtq4R1etVkZPVeyEWTu8TPIm/XJaWxJLQU9m2R0jk1sfwJ2E1M15GiDjT63Tr6QFBwZYnER+Twfs420zSCIJ5+oNJFmU31AAAAA=="
+  }
+]

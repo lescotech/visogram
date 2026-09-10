@@ -1,0 +1,9 @@
+# Normalise line endings: LF in the repository, native in the working tree.
+* text=auto
+
+# Binary assets — never diffed, never line-ending converted.
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.woff2 binary
+*.pdf  binary

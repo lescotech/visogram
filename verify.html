@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visogram — fidelity check</title>
+    <style>
+      body { margin: 0; background: #000; color: #8fa; font: 12px ui-monospace, monospace; }
+      #stage {
+        position: relative; width: 820px; height: 566.4px;
+        background: #000; overflow: hidden; isolation: isolate;
+      }
+      #art { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #ref {
+        position: absolute; left: 337.78px; top: 19px;
+        width: 429.38px; height: 546px;
+        mix-blend-mode: difference; color: #bcc8ff;
+      }
+      #ref svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      /* Both layers at full strength so the difference is honest. */
+      #ref [data-cls~="cls-13"] { opacity: 1 !important; }
+      .legend { padding: 8px 10px; }
+      body.solo-ref #art { visibility: hidden; }
+      body.solo-art #ref { visibility: hidden; }
+      body:not(.diff) #ref { mix-blend-mode: normal; opacity: .5; }
+    </style>
+  </head>
+  <body class="diff">
+    <div id="stage"><canvas id="art"></canvas><div id="ref"></div></div>
+    <p class="legend">
+      difference blend — black means the 3D render and the original vector agree.
+      keys: <b>d</b> diff · <b>a</b> render only · <b>r</b> vector only · <b>o</b> overlay
+    </p>
+    <script type="module" src="/src/verify.ts"></script>
+  </body>
+</html>

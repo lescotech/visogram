@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visogram — Imersive Technology</title>
+    <meta
+      name="description"
+      content="Tour virtual para construtoras, imobiliárias e marcas que precisam mostrar ambientes em 360º."
+    />
+    <link rel="preload" href="/fonts/supply-mono-400.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Archivo carries the running paragraphs; the brand book has no body face,
+         so this is the handoff's addition. Swapping data-tokens to "handoff"
+         also needs JetBrains+Mono added to this family list. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- The loader has to be painted correctly on the very first frame, before
+         the stylesheet has had a chance to arrive, so its ground and its bail-out
+         live here rather than in style.css. The animation is the safety net: if
+         the script never runs, the overlay still gets out of the way. -->
+    <style>
+      .loader {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        background: #17222f;
+        animation: loader-bail 8s steps(1, end) forwards;
+      }
+      .loader[data-done] {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 620ms ease, visibility 0s linear 620ms;
+        animation: none;
+      }
+      @keyframes loader-bail {
+        to {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The boot screen. All of this used to sit in the hero, where a set of
+      readouts reporting "Accessing ....", "Visual operator....Ready" and a
+      frame counter described a page that had already finished loading. Here
+      they describe something true. The arrangement is the print's own left
+      column, kept at its measured proportions.
+    -->
+    <div class="loader" id="loader" role="status" aria-label="Inicializando">
+      <div class="loader__stack">
+        <div class="boot">
+          <dl class="status">
+            <div class="status__row">
+              <dt>Entropy&nbsp;&nbsp;&nbsp;status</dt><dd><span class="status__leader" aria-hidden="true">......................................................</span>Online</dd>
+            </div>
+            <div class="status__row">
+              <dt>Virtual&nbsp;&nbsp;vessel&nbsp;&nbsp;integrity</dt><dd><span class="status__leader" aria-hidden="true">..............................................</span>100%</dd>
+            </div>
+            <div class="status__row">
+              <dt>Visual&nbsp;&nbsp;&nbsp;operator</dt><dd><span class="status__leader" aria-hidden="true">......................................................</span>Ready</dd>
+            </div>
+            <div class="status__row status__row--wide">
+              <dt>Stasis</dt><dd><span class="status__leader" aria-hidden="true">........................................................</span>Disabled</dd>
+            </div>
+          </dl>
+
+          <figure class="card">
+            <figcaption class="card__label">Accessing&nbsp;....</figcaption>
+            <div class="card__art" data-illustration aria-hidden="true"></div>
+          </figure>
+
+          <div class="icons" data-icons aria-hidden="true"></div>
+
+          <ul class="stats">
+            <li>Build 1.0</li>
+            <li>FPS.:30</li>
+            <li>Ping.:0ms</li>
+          </ul>
+        </div>
+
+        <div class="loader__bar" aria-hidden="true"><i></i></div>
+      </div>
+    </div>
+
+    <div class="page">
+      <main class="panel" id="panel">
+        <!-- Real 360º tours from the Lesco Viewer, panning slowly as a
+             slideshow. The scrim sits between them and the type. -->
+        <canvas class="panel__tour" id="tour" aria-hidden="true"></canvas>
+        <div class="panel__scrim" aria-hidden="true"></div>
+
+        <div class="layout">
+          <div class="layout__brand" data-logo aria-label="Visogram" role="img"></div>
+
+          <!-- Icon only, so the accessible name has to come from the label. -->
+          <div class="contact">
+            <a
+              class="contact__quote"
+              id="cta-quote"
+              href="#orcamento"
+              aria-label="Pedir orçamento pelo WhatsApp"
+            >
+              <span class="contact__icon" data-whatsapp aria-hidden="true"></span>
+            </a>
+          </div>
+
+          <h1 class="headline">Imersive<br />Technology</h1>
+
+          <!-- What the background is currently showing, doubling as the
+               slideshow's indicator. Copy is the brand book's own positioning
+               line, from page 1 of visogram.pdf. -->
+          <div class="reel">
+            <p class="reel__pitch">
+              Tour virtual para construtoras, imobiliárias e marcas que
+              precisam mostrar ambientes em 360º.
+            </p>
+            <figure class="reel__now">
+              <figcaption class="reel__meta">
+                <span class="reel__obra" id="tour-obra"></span>
+                <span class="reel__where" id="tour-where"></span>
+              </figcaption>
+              <ol class="reel__dots" id="tour-dots" aria-label="Tours em exibição"></ol>
+            </figure>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ==================================================== corpo da página -->
+    <div class="body-wrap">
+      <!-- 01 — O que é a Visogram -->
+      <section class="section" aria-labelledby="sobre-titulo">
+        <div class="layer about__layer" data-par="0.22" data-bg aria-hidden="true"></div>
+        <div class="section__inner">
+          <p class="eyebrow" data-reveal>01 — O que é a Visogram</p>
+          <h2 class="h2 h2--lead" id="sobre-titulo" data-reveal>
+            Ambientes reais,<br /><em>navegáveis em 360º</em>
+          </h2>
+          <div class="grid about__columns">
+            <p class="lede" data-reveal>
+              A Visogram produz tours virtuais para construtoras, imobiliárias e
+              marcas que precisam mostrar ambientes em 360º como parte de
+              apresentação de portfólio, serviço ou resultados de produtos
+              aplicados.
+            </p>
+            <p class="lede" data-reveal>
+              Cada tour é um espaço explorável no navegador. Sem aplicativo, sem
+              download, sem visita agendada: o cliente entra pelo link e percorre
+              o imóvel como se estivesse lá dentro.
+            </p>
+          </div>
+          <div class="grid features">
+            <div class="feature" data-reveal>
+              <div class="feature__icon" data-icon="panoramica" aria-hidden="true"></div>
+              <h3 class="feature__title">Panorâmica</h3>
+              <p class="feature__body">Captura esférica completa, do piso ao teto.</p>
+            </div>
+            <div class="feature" data-reveal>
+              <div class="feature__icon" data-icon="percepcao" aria-hidden="true"></div>
+              <h3 class="feature__title">Percepção</h3>
+              <p class="feature__body">Escala e profundidade reais do ambiente.</p>
+            </div>
+            <div class="feature" data-reveal>
+              <div class="feature__icon" data-icon="mapeamento" aria-hidden="true"></div>
+              <h3 class="feature__title">Mapeamento</h3>
+              <p class="feature__body">Planta interativa ligando cada ponto de vista.</p>
+            </div>
+            <div class="feature" data-reveal>
+              <div class="feature__icon" data-icon="ecossistema" aria-hidden="true"></div>
+              <h3 class="feature__title">Ecossistema</h3>
+              <p class="feature__body">Vários ambientes conectados em um só link.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Faixa de telemetria. Decorativa e estática; texto verbatim do manual. -->
+      <section class="telemetry" id="telemetry" aria-hidden="true">
+        <dl class="telemetry__grid">
+          <div class="telemetry__row"><dt>Entropy status</dt><dd>Online</dd></div>
+          <div class="telemetry__row"><dt>Virtual vessel integrity</dt><dd>100%</dd></div>
+          <div class="telemetry__row"><dt>Visual operator</dt><dd>Ready</dd></div>
+          <div class="telemetry__row telemetry__row--flag"><dt>Stasis</dt><dd>Disabled</dd></div>
+          <div class="telemetry__row"><dt>Build</dt><dd>1.0</dd></div>
+          <div class="telemetry__row"><dt>FPS</dt><dd>30</dd></div>
+        </dl>
+      </section>
+
+      <!-- 02 — Como funciona -->
+      <section class="section" aria-labelledby="processo-titulo">
+        <div
+          class="layer layer--coral steps__layer"
+          data-par="-0.16"
+          data-bg
+          aria-hidden="true"
+        ></div>
+        <div class="section__inner">
+          <p class="eyebrow" data-reveal>02 — Como funciona</p>
+          <h2 class="h2" id="processo-titulo" data-reveal style="max-width: 20ch">
+            Quatro etapas entre a visita e o link
+          </h2>
+          <div class="grid steps" style="margin-top: clamp(44px, 6vw, 72px)">
+            <div class="step" data-reveal>
+              <p class="step__n">01</p>
+              <h3 class="step__title">Levantamento</h3>
+              <p class="step__body">
+                Você manda a planta, a metragem e o prazo. Definimos quantos
+                pontos de captura o espaço pede.
+              </p>
+            </div>
+            <div class="step" data-reveal>
+              <p class="step__n">02</p>
+              <h3 class="step__title">Captura 360º</h3>
+              <p class="step__body">
+                Sessão no local com câmera panorâmica. Um dia costuma cobrir um
+                decorado inteiro.
+              </p>
+            </div>
+            <div class="step" data-reveal>
+              <p class="step__n">03</p>
+              <h3 class="step__title">Montagem</h3>
+              <p class="step__body">
+                Tratamento das imagens, ligação entre ambientes, planta
+                interativa e pontos de informação.
+              </p>
+            </div>
+            <div class="step" data-reveal>
+              <p class="step__n">04</p>
+              <h3 class="step__title">Entrega</h3>
+              <p class="step__body">
+                Link pronto e código de incorporação, hospedados por nós.
+                Ajustes e novas fases entram depois.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 — Galeria de tours. Thumbnails geradas dos panoramas reais; os
+           cards viram link quando houver URL publicada no manifesto. -->
+      <section class="section section--alt" aria-labelledby="galeria-titulo">
+        <div class="section__inner">
+          <p class="eyebrow" data-reveal>03 — Galeria de tours</p>
+          <div class="gallery__head">
+            <h2 class="h2" id="galeria-titulo" data-reveal>Tours entregues</h2>
+            <a class="ghost" id="cta-gallery" data-reveal href="#orcamento">
+              Ver todos no WhatsApp
+            </a>
+          </div>
+          <div class="grid tours" id="tours-grid">
+            <div class="tour" data-reveal data-tilt data-slug="biotique">
+              <div class="tour__frame">
+                <img
+                  src="/tours/biotique-card.webp"
+                  width="760"
+                  height="528"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Hall de entrada do Biotique, em São Paulo"
+                />
+                <span class="tour__badge">360º</span>
+              </div>
+              <div class="tour__meta">
+                <p class="tour__name">Biotique</p>
+                <p class="tour__where">São Paulo/SP · Setin</p>
+              </div>
+            </div>
+            <div class="tour" data-reveal data-tilt data-slug="lavvi">
+              <div class="tour__frame">
+                <img
+                  src="/tours/lavvi-card.webp"
+                  width="760"
+                  height="528"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Entrada do Lavvi, em São Paulo"
+                />
+                <span class="tour__badge">360º</span>
+              </div>
+              <div class="tour__meta">
+                <p class="tour__name">Lavvi</p>
+                <p class="tour__where">São Paulo/SP · Lavvi</p>
+              </div>
+            </div>
+            <div class="tour" data-reveal data-tilt data-slug="alpha-one">
+              <div class="tour__frame">
+                <img
+                  src="/tours/alpha-one-card.webp"
+                  width="760"
+                  height="528"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Fachada do Alpha One, em São Paulo"
+                />
+                <span class="tour__badge">360º</span>
+              </div>
+              <div class="tour__meta">
+                <p class="tour__name">Alpha One</p>
+                <p class="tour__where">São Paulo/SP · Construcompany</p>
+              </div>
+            </div>
+            <div class="tour" data-reveal data-tilt data-slug="jha-boutique">
+              <div class="tour__frame">
+                <img
+                  src="/tours/jha-boutique-card.webp"
+                  width="760"
+                  height="528"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Ambiente do JHA Boutique, em São Paulo"
+                />
+                <span class="tour__badge">360º</span>
+              </div>
+              <div class="tour__meta">
+                <p class="tour__name">JHA Boutique</p>
+                <p class="tour__where">São Paulo/SP</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 — Para quem é -->
+      <section class="section" aria-labelledby="publicos-titulo">
+        <div class="layer audience__layer" data-par="0.3" data-illustration aria-hidden="true"></div>
+        <div class="section__inner">
+          <p class="eyebrow" data-reveal>04 — Para quem é</p>
+          <h2 class="h2" id="publicos-titulo" data-reveal style="max-width: 18ch">
+            Quem precisa mostrar espaço
+          </h2>
+          <div class="grid audiences" style="margin-top: clamp(44px, 6vw, 72px)">
+            <div class="audience" data-reveal>
+              <p class="audience__tag">Construtoras</p>
+              <h3 class="audience__title">Vender na planta com o espaço já de pé</h3>
+              <p class="audience__body">
+                Decorado, obra em andamento e área comum viram material de venda
+                antes da entrega das chaves. O corretor abre o tour na mesa e o
+                cliente entende a metragem.
+              </p>
+            </div>
+            <div class="audience" data-reveal>
+              <p class="audience__tag">Imobiliárias</p>
+              <h3 class="audience__title">Filtrar visita antes de sair do escritório</h3>
+              <p class="audience__body">
+                O interessado percorre o imóvel pelo link e chega na visita
+                presencial já decidido. Menos deslocamento por curiosidade, mais
+                proposta.
+              </p>
+            </div>
+            <div class="audience" data-reveal>
+              <p class="audience__tag">Marcas</p>
+              <h3 class="audience__title">Mostrar o produto aplicado no ambiente</h3>
+              <p class="audience__body">
+                Revestimento, mobiliário, iluminação e acabamento registrados
+                dentro do projeto real, prontos para portfólio e apresentação
+                comercial.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 — Perguntas frequentes -->
+      <section class="section section--alt" aria-labelledby="faq-titulo">
+        <div class="faq__inner">
+          <p class="eyebrow" data-reveal>05 — Perguntas frequentes</p>
+          <h2 class="h2" id="faq-titulo" hidden>Perguntas frequentes</h2>
+          <div class="faq__list" id="faq">
+            <div class="faq__item">
+              <h3 style="margin: 0">
+                <button class="faq__q" type="button" id="faq-q-1" aria-expanded="true" aria-controls="faq-a-1">
+                  <span>Quanto tempo leva para o tour ficar pronto?</span>
+                  <span class="faq__sign" aria-hidden="true">−</span>
+                </button>
+              </h3>
+              <p class="faq__a" id="faq-a-1" role="region" aria-labelledby="faq-q-1">
+                Entre 3 e 7 dias úteis a partir da captura, dependendo do número
+                de ambientes. Obras e decorados grandes podem entrar em etapas,
+                com a primeira parte no ar antes do restante.
+              </p>
+            </div>
+            <div class="faq__item">
+              <h3 style="margin: 0">
+                <button class="faq__q" type="button" id="faq-q-2" aria-expanded="false" aria-controls="faq-a-2">
+                  <span>O imóvel precisa estar mobiliado?</span>
+                  <span class="faq__sign" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <p class="faq__a" id="faq-a-2" role="region" aria-labelledby="faq-q-2" hidden>
+                Não. Registramos obra bruta, imóvel vazio, decorado ou entregue.
+                Cada fase conta uma história diferente e todas funcionam como
+                material de venda.
+              </p>
+            </div>
+            <div class="faq__item">
+              <h3 style="margin: 0">
+                <button class="faq__q" type="button" id="faq-q-3" aria-expanded="false" aria-controls="faq-a-3">
+                  <span>Como o tour entra no meu site ou anúncio?</span>
+                  <span class="faq__sign" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <p class="faq__a" id="faq-a-3" role="region" aria-labelledby="faq-q-3" hidden>
+                Você recebe um link e um código de incorporação. Funciona em site
+                próprio, portais, e-mail, WhatsApp e apresentações — sem instalar
+                nada.
+              </p>
+            </div>
+            <div class="faq__item">
+              <h3 style="margin: 0">
+                <button class="faq__q" type="button" id="faq-q-4" aria-expanded="false" aria-controls="faq-a-4">
+                  <span>Funciona bem no celular?</span>
+                  <span class="faq__sign" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <p class="faq__a" id="faq-a-4" role="region" aria-labelledby="faq-q-4" hidden>
+                Sim. O tour abre direto no navegador do celular, com giro por
+                toque e por sensor de movimento, além de modo óculos VR.
+              </p>
+            </div>
+            <div class="faq__item">
+              <h3 style="margin: 0">
+                <button class="faq__q" type="button" id="faq-q-5" aria-expanded="false" aria-controls="faq-a-5">
+                  <span>Vocês atendem fora da cidade?</span>
+                  <span class="faq__sign" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <p class="faq__a" id="faq-a-5" role="region" aria-labelledby="faq-q-5" hidden>
+                Atendemos todo o Brasil. Fora da região de origem entra um custo
+                de deslocamento, informado junto do orçamento.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA final -->
+      <section class="section cta" id="orcamento" aria-labelledby="cta-titulo">
+        <div class="layer cta__layer" data-par="0.14" data-bg data-centered aria-hidden="true"></div>
+        <div class="cta__inner">
+          <p class="cta__eyebrow" data-reveal>A c c e s s i n g</p>
+          <h2 class="h2" id="cta-titulo" data-reveal>
+            Mande a planta.<br /><em>Devolvemos o espaço.</em>
+          </h2>
+          <p class="lede cta__lede" data-reveal>
+            Orçamento no mesmo dia. Conte o tipo de imóvel, a metragem e a cidade
+            — o resto a gente resolve.
+          </p>
+          <a class="cta__button" id="cta-primary" data-reveal href="#orcamento">
+            Falar no WhatsApp
+          </a>
+          <p class="cta__contact" data-reveal>
+            <span id="cta-phone">(47) 99920-1576</span> ·
+            <a href="https://instagram.com/visogram.tours" target="_blank" rel="noopener">
+              @visogram.tours
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="footer__inner">
+          <div class="footer__mark" data-logo aria-label="Visogram" role="img"></div>
+          <p class="footer__note">Tour virtual 360º · Brasil</p>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

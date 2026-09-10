@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-7.5 104 45.8 18.5" fill="none" aria-hidden="true" focusable="false">
+<defs>
+    <clipPath id="ic-clippath">
+      <path fill="none" data-cls="cls-2" d="M8.2,113.07c0,3.98-3.23,7.21-7.21,7.21v-14.42c3.98,0,7.21,3.23,7.21,7.21Z"/>
+    </clipPath>
+    <clipPath id="ic-clippath-1">
+      <path fill="none" data-cls="cls-2" d="M22.62,113.07c0,3.98,3.23,7.21,7.21,7.21v-14.42c-3.98,0-7.21,3.23-7.21,7.21Z"/>
+    </clipPath>
+  </defs>
+<g>
+        <g clip-path="url(#ic-clippath)" data-cls="cls-5">
+          <circle fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx=".99" cy="113.07" r="7.21"/>
+          <ellipse fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx=".99" cy="113.07" rx="7.21" ry="3.12"/>
+          <ellipse fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx=".99" cy="113.07" rx="3.12" ry="7.21"/>
+          <line fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" x1="-6.21" y1="113.07" x2="8.2" y2="113.07"/>
+          <line fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" x1=".99" y1="105.86" x2=".99" y2="120.29"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M.99,120.29c-2.85,0-5.16-3.23-5.16-7.21,0-3.98,2.31-7.21,5.16-7.21"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M1,120.3c2.85,0,5.16-3.23,5.16-7.21,0-3.98-2.31-7.21-5.16-7.21"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M-6.22,113.07c0-2.77,3.23-5.02,7.21-5.02s7.21,2.25,7.21,5.02"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M-6.22,113.07c0,2.77,3.23,5.02,7.21,5.02s7.21-2.25,7.21-5.02"/>
+        </g>
+        <g clip-path="url(#ic-clippath-1)" data-cls="cls-4">
+          <circle fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx="29.83" cy="113.07" r="7.21"/>
+          <ellipse fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx="29.83" cy="113.07" rx="7.21" ry="3.12"/>
+          <ellipse fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx="29.83" cy="113.07" rx="3.12" ry="7.21"/>
+          <line fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" x1="37.04" y1="113.07" x2="22.62" y2="113.07"/>
+          <line fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" x1="29.83" y1="105.86" x2="29.83" y2="120.29"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M29.83,120.29c2.85,0,5.16-3.23,5.16-7.21s-2.31-7.21-5.16-7.21"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M29.83,120.3c-2.85,0-5.16-3.23-5.16-7.21s2.31-7.21,5.16-7.21"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M37.04,113.07c0-2.77-3.23-5.02-7.21-5.02s-7.21,2.25-7.21,5.02"/>
+          <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M37.04,113.07c0,2.77-3.23,5.02-7.21,5.02s-7.21-2.25-7.21-5.02"/>
+        </g>
+        <circle fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx="15.41" cy="113.07" r="7.21"/>
+        <ellipse fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx="15.41" cy="113.07" rx="7.21" ry="3.12"/>
+        <ellipse fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" cx="15.41" cy="113.07" rx="3.12" ry="7.21"/>
+        <line fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" x1="8.2" y1="113.07" x2="22.62" y2="113.07"/>
+        <line fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" x1="15.41" y1="105.86" x2="15.41" y2="120.29"/>
+        <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M15.41,120.29c-2.85,0-5.16-3.23-5.16-7.21s2.31-7.21,5.16-7.21"/>
+        <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M15.41,120.3c2.85,0,5.16-3.23,5.16-7.21s-2.31-7.21-5.16-7.21"/>
+        <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M8.2,113.07c0-2.77,3.23-5.02,7.21-5.02s7.21,2.25,7.21,5.02"/>
+        <path fill="none" stroke="currentColor" stroke-width=".5" stroke-miterlimit="10" data-cls="cls-1" d="M8.2,113.07c0,2.77,3.23,5.02,7.21,5.02s7.21-2.25,7.21-5.02"/>
+      </g>
+</svg>

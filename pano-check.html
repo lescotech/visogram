@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visogram — projection check</title>
+    <style>
+      body { margin: 0; background: #0c1218; color: #9ac3e6;
+             font: 12px/1.6 ui-monospace, monospace; padding: 14px; }
+      h2 { font-size: 12px; font-weight: 400; opacity: .7; margin: 18px 0 6px; }
+      img, .stage { width: 100%; max-width: 900px; display: block; border-radius: 6px; }
+      .stage { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #000;
+               width: 430px; max-width: 100%; }
+      /* Centre crosshair: marks the u the camera is pointed at. */
+      .stage::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+                      width: 2px; margin-left: -1px; background: #fff; z-index: 2; }
+      canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .expect { max-width: 900px; background: #17222f; padding: 10px 12px;
+                border-radius: 6px; border: 1px solid #9ac3e633; }
+      b { color: #d07078; }
+    </style>
+  </head>
+  <body>
+    <p class="expect">
+      Probe equirect, 12 bands of 30&deg;. Band <b>0</b> is rose and starts at u&nbsp;=&nbsp;0.<br />
+      The viewer's ray matrix negates its third column, so yaw&nbsp;=&nbsp;0 centres
+      u&nbsp;=&nbsp;<b>0.5</b>: the render below must show band <b>6</b> on the
+      crosshair, with <b>7</b> to its right and <b>5</b> to its left. Numbers
+      running the other way means the sphere is mirrored; a different band in the
+      centre means the yaw origin is wrong — which it was, by half a turn, until
+      that negation was spotted.
+    </p>
+    <h2>source equirect (flat)</h2>
+    <img src="/tours/_probe.webp" alt="probe equirect" />
+    <h2>yaw = 0 &mdash; the 5|6 boundary must sit on the crosshair</h2>
+    <div id="stage-zero" class="stage"><canvas></canvas></div>
+    <h2>yaw = &pi; &mdash; the <b>rose</b> band's leading edge must sit on the crosshair (u = 0 is a boundary, not a band centre)</h2>
+    <div id="stage-pi" class="stage"><canvas></canvas></div>
+    <script type="module" src="/src/pano-check.ts"></script>
+  </body>
+</html>

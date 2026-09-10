@@ -1,0 +1,29 @@
+{
+  "name": "visogram",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tours": "node tools/build-tours.mjs",
+    "cards": "node tools/build-tour-cards.mjs",
+    "icons": "node tools/split-icons.mjs",
+    "fonts": "node tools/build-fonts.mjs",
+    "svg": "node tools/inline-svg.mjs",
+    "geometry": "node tools/extract-geometry.mjs",
+    "verify": "node tools/verify-geometry.mjs"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.180.0",
+    "sharp": "^0.35.4",
+    "subset-font": "^2.4.0",
+    "svgpath": "^2.6.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  }
+}

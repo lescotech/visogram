@@ -1,0 +1,675 @@
+/*
+ * Visogram.
+ *
+ * Two screens share one set of measurements. Every number below is a design
+ * point taken off page 7 of visogram.pdf (see src/hero/design.ts), converted to
+ * pixels through --pt.
+ *
+ *   hero       --pt = min(100/566.4 cqh, 100/820 cqw)   — scales with the panel
+ *   boot       --pt = min(0.23dvh, 0.29vw)              — scales with the viewport
+ *
+ * Because both screens define --pt and nothing else hardcodes a pixel size, the
+ * status box, the icon column, the readouts and the card keep their measured
+ * proportions in either place.
+ */
+
+@font-face {
+  font-family: 'PP Supply Mono';
+  src: url('/fonts/supply-mono-200.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Supply Mono';
+  src: url('/fonts/supply-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PP Supply Mono';
+  src: url('/fonts/supply-mono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --navy: #17222f;
+  --ice: #e8f2fa;
+  --sky: #9ac3e6;
+  --rose: #d07078;
+  --rose-ice: #fff3f3;
+  /* Linework colour. The delivered SVGs specify #BCC8FF; the PDF renders the
+     same artwork as #ACC5E5. One switch, pending confirmation. */
+  --line: #bcc8ff;
+
+  --mono: 'PP Supply Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Mono',
+    'DejaVu Sans Mono', monospace;
+
+  /* Natural advance width of PP Supply Mono, in em. */
+  --advance: 0.593;
+  /* Group opacity of elemento-fundo.svg, for when the wireframe returns. */
+  --art-opacity: 0.43;
+
+  /* How much navy sits over the tour. Near = the type column on the left,
+     far = the open right side, foot = the band under the headline.
+
+     Kept light sideways so the room still reads, and weighted at the foot
+     instead, because that is where all the small type lives. Chosen against
+     the darkest and brightest panoramas composited with the type in place:
+     SCRIM=1 SCRIM_NEAR=.52 node tools/preview-hero.mjs <slug> <scene> */
+  --scrim-near: 0.52;
+  --scrim-far: 0.18;
+  --scrim-foot: 0.72;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /*
+   * The print's page is white, which worked when the hero was the whole design.
+   * With sections below it, a white band between the hero panel and section 01
+   * would read as a mistake, so the page ground goes dark: the hero keeps its
+   * inset rounded panel, now as a lighter panel on a darker ground, and the
+   * scroll into the body is seamless.
+   */
+  background: var(--bg-alt, #111a25);
+  color: var(--sky);
+  font-family: var(--mono);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* =============================================================== boot screen
+
+   Everything here used to sit in the hero, describing a page that had already
+   loaded. The arrangement is the print's own left column: the status box, then
+   the card with the icon column and the readouts beside it. Offsets are the
+   measured design coordinates minus the block's origin at (24.3, 106.4).
+   ========================================================================= */
+
+.loader__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 4.4vh, 44px);
+}
+
+.boot {
+  /* Bounded on both axes so the block never overflows a short window or a
+     narrow phone: 334.3pt tall must fit ~78dvh, 296.4pt wide must fit ~88vw. */
+  --pt: min(0.2333dvh, 0.2969vw);
+  position: relative;
+  width: calc(296.4 * var(--pt));
+  height: calc(334.3 * var(--pt));
+}
+
+.boot .status {
+  left: 0;
+  top: 0;
+}
+
+.boot .card {
+  left: calc(2.1 * var(--pt));
+  top: calc(99.3 * var(--pt));
+  width: calc(152.9 * var(--pt));
+}
+
+.boot .icons {
+  left: calc(181.4 * var(--pt));
+  top: calc(98.6 * var(--pt));
+}
+
+.boot .stats {
+  left: calc(183.6 * var(--pt));
+  top: calc(246.92 * var(--pt));
+}
+
+.boot .status,
+.boot .card,
+.boot .icons,
+.boot .stats {
+  position: absolute;
+}
+
+/*
+ * The boot sequence. Each row's label lands first and its value resolves a beat
+ * later, so the screen reads as a system checking itself off rather than as a
+ * still image that happened to fade in. No copy is invented for this — it is
+ * the print's own readouts, in order.
+ *
+ * The last element settles at 1.91s, and main.ts holds the screen for 2.5s, so
+ * the sequence always completes and gets a beat to land before the hero.
+ */
+.boot .status__row,
+.boot .status__row dd,
+.boot .card,
+.boot .icons,
+.boot .stats {
+  animation: boot-in 560ms ease both;
+}
+
+.boot .status__row:nth-child(1) { animation-delay: 120ms; }
+.boot .status__row:nth-child(2) { animation-delay: 300ms; }
+.boot .status__row:nth-child(3) { animation-delay: 480ms; }
+.boot .status__row:nth-child(4) { animation-delay: 660ms; }
+
+/* The values report back after their labels. */
+.boot .status__row:nth-child(1) dd { animation-delay: 540ms; }
+.boot .status__row:nth-child(2) dd { animation-delay: 720ms; }
+.boot .status__row:nth-child(3) dd { animation-delay: 900ms; }
+.boot .status__row:nth-child(4) dd { animation-delay: 1080ms; }
+
+.boot .card { animation-delay: 900ms; }
+.boot .icons { animation-delay: 1150ms; }
+.boot .stats { animation-delay: 1350ms; }
+
+@keyframes boot-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.loader__bar {
+  width: calc(296.4 * min(0.2333dvh, 0.2969vw));
+  height: max(1px, 0.08vh);
+  background: rgb(154 195 230 / 0.2);
+  overflow: hidden;
+}
+
+/* Indeterminate on purpose: the real wait is fonts plus a texture decode, and
+   neither reports progress worth showing as a percentage. */
+.loader__bar i {
+  display: block;
+  width: 34%;
+  height: 100%;
+  background: var(--sky);
+  animation: loader-sweep 1500ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes loader-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(294%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader__bar i {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+
+  .boot .status__row,
+  .boot .status__row dd,
+  .boot .card,
+  .boot .icons,
+  .boot .stats {
+    animation: none;
+  }
+}
+
+/* ==================================================================== hero */
+
+.page {
+  min-height: 100dvh;
+  padding: clamp(8px, 2.2vmin, 20px);
+  display: grid;
+}
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--navy);
+  /* 16pt of 566.4pt panel height. */
+  border-radius: clamp(9px, 2.8vh, 24px);
+  container-type: size;
+}
+
+/* ----------------------------------------------------------------- the tour */
+
+.panel__tour {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  /* Fades up once the first panorama has decoded, so the navy panel is never
+     replaced by a flash of undrawn canvas. */
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.panel:has(.panel__tour[data-ready]) .panel__tour {
+  opacity: 1;
+}
+
+/* The opacity mask. Denser over the left-hand column and along the bottom,
+   where the type sits, and thinner over the open right side so the tour still
+   reads as a room. Every level is a variable — this is the one place to tune
+   how much of the panorama comes through. */
+.panel__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      0deg,
+      rgb(23 34 47 / var(--scrim-foot)) 0%,
+      rgb(23 34 47 / 0) 42%
+    ),
+    linear-gradient(
+      90deg,
+      rgb(23 34 47 / var(--scrim-near)) 0%,
+      rgb(23 34 47 / var(--scrim-near)) 26%,
+      rgb(23 34 47 / var(--scrim-far)) 72%,
+      rgb(23 34 47 / var(--scrim-far)) 100%
+    );
+}
+
+/* --------------------------------------------------------------- the layout */
+
+.layout {
+  --pt: min(0.176554cqh, 0.121951cqw);
+  position: absolute;
+  inset: 0;
+}
+
+.layout__brand {
+  position: absolute;
+  left: calc(27.9 * var(--pt));
+  top: calc(27.1 * var(--pt));
+  width: calc(353.6 * var(--pt));
+  color: var(--rose);
+}
+
+.layout__brand svg,
+.card__art svg,
+.icons svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* -------------------------------------------------------------- headline */
+
+.headline {
+  position: absolute;
+  left: calc(27.7 * var(--pt));
+  /* Positioned so the first baseline lands on 504.0pt, as measured. */
+  top: calc(476.87 * var(--pt));
+  margin: 0;
+  font-size: calc(37.4 * var(--pt));
+  line-height: calc(36.9 * var(--pt));
+  letter-spacing: -0.005em;
+  font-weight: 400;
+  color: var(--sky);
+  /* The last of the contrast, over a photograph that changes every nine
+     seconds. Cheaper than darkening the tour further, and invisible until the
+     type lands on something bright. */
+  text-shadow: 0 calc(1 * var(--pt)) calc(6 * var(--pt)) rgb(23 34 47 / 0.55);
+}
+
+/* --------------------------------------------------------- call to action
+
+   The print has no CTA. This one is the WhatsApp mark on its own, mirroring
+   the logo's 27.9pt inset on the opposite side so the header row reads as logo
+   left, action right, and vertically centred on the logo's 55pt box rather
+   than sharing its top edge.
+
+   The mark keeps WhatsApp's own green: it is a platform affordance, and
+   recolouring it to the brand palette would stop it reading as one. At 32pt it
+   is a 45px target at the design scale, so it clears the 44px minimum without
+   a container around it.
+   ------------------------------------------------------------------------- */
+
+.contact {
+  position: absolute;
+  right: calc(27.9 * var(--pt));
+  /* Logo box is 27.1..82.1pt, so its centre is 54.6pt. */
+  top: calc(38.6 * var(--pt));
+}
+
+.contact__quote {
+  display: block;
+  width: calc(32 * var(--pt));
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+/* No border to light up, so the affordance is the mark itself. */
+.contact__quote:hover,
+.contact__quote:focus-visible {
+  transform: scale(1.07);
+  filter: brightness(1.1);
+}
+
+.contact__icon,
+.contact__icon svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* A CTA whose destination is still unset in src/hero/contact.ts. */
+[data-unconfigured] {
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------- the reel
+
+   Positioning line plus a readout of whichever tour is on screen, which also
+   serves as the slideshow's indicator. Balances the headline diagonally,
+   pinned to the same 27.9pt inset on the right.
+   ----------------------------------------------------------------------- */
+
+.reel {
+  position: absolute;
+  right: calc(27.9 * var(--pt));
+  bottom: calc(18 * var(--pt));
+  width: calc(260 * var(--pt));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(16 * var(--pt));
+  text-align: right;
+  /* Same reasoning as the headline, and more necessary: this is 7pt type. */
+  text-shadow: 0 calc(1 * var(--pt)) calc(4 * var(--pt)) rgb(23 34 47 / 0.75);
+}
+
+.reel__pitch {
+  margin: 0;
+  font-size: calc(7 * var(--pt));
+  line-height: calc(12 * var(--pt));
+  letter-spacing: -0.05em;
+  color: var(--sky);
+  opacity: 0.78;
+}
+
+.reel__now {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(14 * var(--pt));
+}
+
+.reel__meta {
+  display: flex;
+  align-items: baseline;
+  gap: calc(8 * var(--pt));
+  font-size: calc(7 * var(--pt));
+  line-height: 1;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.reel__obra {
+  color: var(--sky);
+}
+
+.reel__where {
+  color: var(--sky);
+  opacity: 0.55;
+}
+
+.reel__dots {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--pt));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reel__dots button {
+  display: grid;
+  place-items: center;
+  width: calc(16 * var(--pt));
+  height: calc(24 * var(--pt));
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reel__dots button::before {
+  content: '';
+  width: calc(4.5 * var(--pt));
+  height: calc(4.5 * var(--pt));
+  border-radius: 50%;
+  background: var(--sky);
+  opacity: 0.3;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.reel__dots button[aria-current='true']::before {
+  opacity: 1;
+  transform: scale(1.25);
+}
+
+.reel__dots button:hover::before,
+.reel__dots button:focus-visible::before {
+  opacity: 0.75;
+}
+
+:where(a, button):focus-visible {
+  outline: max(1px, calc(0.5 * var(--pt))) solid var(--sky);
+  outline-offset: calc(3 * var(--pt));
+}
+
+/* ==================================================== shared boot components
+
+   Measured off the print, positioned by whichever screen hosts them. These
+   carry no position of their own.
+   ========================================================================= */
+
+.status {
+  width: calc(296.4 * var(--pt));
+  height: calc(70.7 * var(--pt));
+  margin: 0;
+  padding: calc(4.9 * var(--pt)) calc(11.3 * var(--pt)) 0 calc(11.3 * var(--pt));
+  border: max(1px, calc(0.5 * var(--pt))) solid rgb(154 195 230 / 0.5);
+  border-radius: calc(5 * var(--pt));
+  font-size: calc(7 * var(--pt));
+  line-height: calc(15 * var(--pt));
+  letter-spacing: -0.08em;
+  color: var(--sky);
+}
+
+.status__row {
+  white-space: nowrap;
+}
+
+.status__row dt,
+.status__row dd {
+  display: inline;
+  margin: 0;
+}
+
+/* The fourth row is tracked differently in the source so that its shorter
+   value still lands on the same right edge as the other three. */
+.status__row--wide {
+  letter-spacing: -0.0365em;
+}
+
+/*
+ * The card is measured relative to itself, not to its host, so it renders
+ * identically at any size. Every figure is its design measurement over the
+ * card's own 152.9 x 235.
+ */
+.card {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 152.9 / 235;
+  /* Outlined rather than filled, matching the status box: on the boot screen
+     the ice panel read as a separate object floating on the navy. Same 0.5pt
+     stroke and same 5pt radius, so the two containers are one treatment.
+     Note the radius must not use cqw: inside the element that declares the
+     container, cq units resolve against the *ancestor* container, and with none
+     above the boot screen they fall back to the viewport — which is how this
+     corner ended up at 46px. */
+  border: max(1px, calc(0.5 * var(--pt))) solid rgb(154 195 230 / 0.5);
+  border-radius: calc(5 * var(--pt));
+  container-type: inline-size;
+}
+
+.card__label {
+  position: absolute;
+  left: 18.38%; /* 28.1 of 152.9 */
+  top: 5.63%; /*  13.22 of 235 */
+  margin: 0;
+  font-size: 4.578cqw; /* 7 of 152.9 */
+  line-height: 1;
+  letter-spacing: 0.62em;
+  color: var(--sky);
+}
+
+.card__art {
+  position: absolute;
+  left: 18.7%; /* 28.6 of 152.9 */
+  top: 14.89%; /* 35 of 235 */
+  width: 68.22%; /* 104.3 of 152.9 */
+  color: var(--line);
+}
+
+.icons {
+  width: calc(31.4 * var(--pt));
+  color: var(--line);
+}
+
+.stats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(7 * var(--pt));
+  line-height: calc(15 * var(--pt));
+  letter-spacing: -0.08em;
+  color: var(--sky);
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   Mobile. The hero is now four elements, so it reflows into a simple column;
+   the boot screen already scales on both axes and needs nothing here. The
+   print has no mobile counterpart, so this is an extension of the system
+   rather than a measured layout.
+   ========================================================================= */
+
+@media (max-width: 899px) {
+  .page {
+    padding: 10px;
+  }
+
+  .panel {
+    min-height: calc(100dvh - 20px);
+  }
+
+  /* One column, so the mask leans on a vertical gradient instead of a
+     horizontal one — there is no open right-hand side to let through. */
+  .panel__scrim {
+    background:
+      linear-gradient(
+        0deg,
+        rgb(23 34 47 / var(--scrim-near)) 0%,
+        rgb(23 34 47 / var(--scrim-near)) 30%,
+        rgb(23 34 47 / var(--scrim-far)) 62%,
+        rgb(23 34 47 / var(--scrim-near)) 100%
+      );
+  }
+
+  .layout {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(24px, 7vw, 44px);
+    padding: clamp(22px, 7vw, 44px) clamp(20px, 6vw, 40px);
+    min-height: calc(100dvh - 20px);
+  }
+
+  .layout__brand,
+  .headline,
+  .contact,
+  .reel {
+    position: static;
+    left: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+  }
+
+  .layout__brand {
+    width: min(62vw, 300px);
+  }
+
+  /* The mark sits under the logo, at a size that still reads as a target. */
+  .contact__quote {
+    width: clamp(46px, 13vw, 58px);
+  }
+
+  .headline {
+    margin-top: auto;
+    font-size: clamp(38px, 12.5vw, 76px);
+    line-height: 0.99;
+    letter-spacing: -0.01em;
+  }
+
+  .reel {
+    width: auto;
+    align-items: flex-start;
+    text-align: left;
+    gap: clamp(14px, 4vw, 20px);
+  }
+
+  .reel__pitch {
+    font-size: clamp(11px, 3.2vw, 13px);
+    line-height: 1.55;
+    letter-spacing: -0.02em;
+  }
+
+  /* --pt is derived from the panel, so on a phone it collapses to well under a
+     pixel; every gap expressed in design points needs a real value here. */
+  .reel__now {
+    gap: clamp(12px, 3.5vw, 18px);
+  }
+
+  .reel__meta {
+    gap: clamp(7px, 2.2vw, 10px);
+    font-size: clamp(10px, 2.9vw, 12px);
+    letter-spacing: -0.02em;
+  }
+
+  .reel__dots {
+    gap: 2px;
+  }
+
+  .reel__dots button {
+    width: 22px;
+    height: 30px;
+  }
+
+  .reel__dots button::before {
+    width: 6px;
+    height: 6px;
+  }
+}
+

@@ -1,0 +1,676 @@
+/*
+ * Visogram — corpo da landing (seções 01–05, CTA e rodapé).
+ *
+ * Structure, spacing, copy and behaviour follow design_handoff_visogram_landing
+ * exactly. Colour and type are the one place this departs, and deliberately —
+ * see the token block below.
+ *
+ * House rules from the handoff, applied throughout: border-radius 0 everywhere,
+ * no shadows, no media queries. Everything reflows through clamp() and
+ * auto-fit/minmax. The 1px dividers inside the icon strip and the audience grid
+ * are a `gap: 1px` over a hairline background, not borders.
+ */
+
+:root {
+  /*
+   * The handoff specifies its own palette and JetBrains Mono. Those read as the
+   * design tool's stand-ins rather than a rebrand: its coral (#e07a6e) and blue
+   * (#a9c4dd) are within a few percent of the brand book's rose and sky, and PP
+   * Supply Mono — which the brand book actually embeds, and which this project
+   * already self-hosts — is a paid face the tool could not load.
+   *
+   * So the body inherits the hero's measured palette, and the handoff's literal
+   * values live in [data-tokens='handoff'] below. Flipping is one attribute on
+   * <html> plus the JetBrains link in index.html.
+   */
+  --bg: var(--navy);
+  /* Alternating sections sit *darker* than the base, as in the handoff. */
+  --bg-alt: #111a25;
+  --coral: var(--rose);
+  --coral-hover: #e39ba1;
+  --blue: var(--sky);
+  --ink: var(--ice);
+  /* Neutral steps, carried over as given — they work with either palette. */
+  --body-fg: #c6d2de;
+  --muted: #93a3b3;
+  --dim: #7f93a6;
+  --dim-2: #6f8296;
+  --answer: #a8b6c4;
+  --hairline: rgb(154 195 230 / 0.16);
+  --hairline-soft: rgb(154 195 230 / 0.14);
+  --hairline-mid: rgb(154 195 230 / 0.18);
+  --hairline-firm: rgb(154 195 230 / 0.22);
+  --hairline-strong: rgb(154 195 230 / 0.35);
+
+  --font-body: Archivo, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* The handoff asks for a 300 here. PP Supply Mono goes to 200, but 400 is
+     what the brand book's own headline uses, so the two screens agree. */
+  --h2-weight: 400;
+
+  --section-y: clamp(72px, 11vw, 160px);
+  --section-x: clamp(20px, 6vw, 96px);
+  --container: 1180px;
+}
+
+:root[data-tokens='handoff'] {
+  --bg: #262e38;
+  --bg-alt: #1e252d;
+  --coral: #e07a6e;
+  --coral-hover: #efa79e;
+  --blue: #a9c4dd;
+  --ink: #e8eef5;
+  --h2-weight: 300;
+  /* --mono is the variable the stylesheets actually read; it is declared in
+     style.css. Overriding it here only takes effect once JetBrains Mono is
+     added to the Google Fonts link in index.html — otherwise this falls back
+     to ui-monospace. */
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+::selection {
+  background: var(--coral);
+  color: var(--bg-alt);
+}
+
+.body-wrap {
+  position: relative;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  /* clip, not hidden: `overflow-x: hidden` promotes overflow-y to auto, which
+     silently turns this into a scroll container and would break sticky
+     positioning or scroll anchoring inside it. */
+  overflow-x: clip;
+}
+
+/* Inline links only. Component links qualify themselves past this — a bare
+   .ghost or .cta__button loses to (0,1,1) and inherits coral, which on the
+   coral button means invisible text. */
+.body-wrap a {
+  color: var(--coral);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.body-wrap a:hover,
+.body-wrap a:focus-visible {
+  color: var(--coral-hover);
+}
+
+/* ------------------------------------------------------------- scaffolding */
+
+.section {
+  position: relative;
+  padding: var(--section-y) var(--section-x);
+  overflow: hidden;
+}
+
+.section--alt {
+  background: var(--bg-alt);
+}
+
+.section__inner {
+  position: relative;
+  max-width: var(--container);
+  margin: 0 auto;
+}
+
+/* Parallax layers. Never interactive, and always cheap to move. */
+.layer {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+  color: var(--blue);
+}
+
+.layer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* elemento-fundo carries the brand's own 0.43 group opacity. Inside a
+   parallax layer the layer sets the level, so neutralise it — otherwise the
+   two multiply and the artwork all but disappears. */
+.layer [opacity] {
+  opacity: 1;
+}
+
+.layer--coral {
+  color: var(--coral);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 34px;
+  height: 1px;
+  background: var(--coral);
+  flex: none;
+}
+
+.h2 {
+  font-family: var(--mono);
+  font-weight: var(--h2-weight);
+  font-size: clamp(28px, 4.4vw, 54px);
+  line-height: 1.12;
+  margin: 28px 0 0;
+  text-wrap: balance;
+}
+
+.h2--lead {
+  font-size: clamp(30px, 5.4vw, 68px);
+  line-height: 1.08;
+  /* The handoff says 16ch, measured against JetBrains Mono. PP Supply Mono
+     needs 19 for the authored <br> to hold: at 16ch the second line reflows
+     and "360º" drops to a third. */
+  max-width: 19ch;
+}
+
+.h2 em {
+  font-style: normal;
+  color: var(--coral);
+}
+
+.lede {
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.7;
+  color: var(--body-fg);
+  margin: 0;
+  max-width: 56ch;
+}
+
+.grid {
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+}
+
+/* ============================================== 01 — O que é a Visogram */
+
+.about__layer {
+  right: -14%;
+  top: -10%;
+  width: min(760px, 105vw);
+  opacity: 0.13;
+}
+
+.about__columns {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(28px, 4vw, 64px);
+  margin-top: clamp(36px, 5vw, 64px);
+  align-items: start;
+}
+
+/* Gapless grid: 1px of hairline shows between solid-backed children. */
+.features {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 1px;
+  background: var(--hairline);
+  margin-top: clamp(48px, 6vw, 88px);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.feature {
+  background: var(--bg);
+  padding: 26px 22px;
+}
+
+.feature__icon {
+  height: 44px;
+  margin-bottom: 18px;
+  color: var(--blue);
+}
+
+.feature__icon svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+.feature__title {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.feature__body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+/* ==================================================== faixa de telemetria */
+
+.telemetry {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--hairline-soft);
+  border-bottom: 1px solid var(--hairline-soft);
+  padding: clamp(28px, 4vw, 44px) var(--section-x);
+  overflow: hidden;
+}
+
+.telemetry__grid {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 10px 48px;
+  font-family: var(--mono);
+  font-size: clamp(11px, 1.2vw, 13px);
+  color: var(--dim);
+}
+
+.telemetry__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.telemetry__row dt,
+.telemetry__row dd {
+  margin: 0;
+}
+
+.telemetry__row dd {
+  color: var(--blue);
+}
+
+.telemetry__row--flag dd {
+  color: var(--coral);
+}
+
+/* ======================================================= 02 — Como funciona */
+
+.steps__layer {
+  left: -22%;
+  bottom: -18%;
+  width: min(680px, 100vw);
+  opacity: 0.1;
+}
+
+.steps {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+.step {
+  border-top: 1px solid var(--hairline-firm);
+  padding-top: 22px;
+}
+
+.step__n {
+  font-family: var(--mono);
+  font-size: clamp(38px, 5vw, 60px);
+  font-weight: var(--h2-weight);
+  color: var(--coral);
+  line-height: 1;
+}
+
+.step__title {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 18px;
+}
+
+.step__body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin: 10px 0 0;
+}
+
+/* ======================================================= 03 — Galeria */
+
+.gallery__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 28px 0 clamp(40px, 5vw, 64px);
+}
+
+.gallery__head .h2 {
+  margin: 0;
+  max-width: 16ch;
+}
+
+.body-wrap a.ghost {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1px solid var(--hairline-strong);
+  color: var(--blue);
+  /* The handoff's 12px 20px lands under the 44px touch target it also asks
+     for, so the block is padded to reach it without changing the type. */
+  padding: 15px 20px;
+  display: inline-block;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.body-wrap a.ghost:hover,
+.body-wrap a.ghost:focus-visible {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.tours {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+
+.tour {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--hairline-soft);
+  overflow: hidden;
+  will-change: transform;
+  transition: border-color 0.4s ease;
+  display: block;
+  color: inherit;
+}
+
+/* Only cards that became links get the hover — the rest are not clickable. */
+a.tour:hover,
+a.tour:focus-visible {
+  border-color: var(--coral);
+  color: inherit;
+}
+
+.tour__frame {
+  position: relative;
+  height: clamp(200px, 24vw, 260px);
+  background: var(--bg-alt);
+}
+
+.tour__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tour__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink);
+  background: rgb(17 26 37 / 0.72);
+  padding: 5px 9px;
+  pointer-events: none;
+}
+
+.tour__meta {
+  padding: 20px 20px 22px;
+}
+
+.tour__name {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+
+.tour__where {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin: 8px 0 0;
+}
+
+/* ====================================================== 04 — Para quem é */
+
+.audience__layer {
+  right: 6%;
+  top: 8%;
+  height: min(420px, 50vw);
+  width: auto;
+  opacity: 0.22;
+}
+
+.audience__layer svg {
+  height: 100%;
+  width: auto;
+}
+
+.audiences {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1px;
+  background: var(--hairline);
+}
+
+.audience {
+  background: var(--bg);
+  padding: clamp(28px, 3.4vw, 44px) clamp(22px, 2.6vw, 34px);
+}
+
+.audience__tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--coral);
+  text-transform: uppercase;
+}
+
+.audience__title {
+  font-family: var(--mono);
+  font-size: clamp(20px, 2.4vw, 26px);
+  font-weight: 400;
+  margin-top: 16px;
+}
+
+.audience__body {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+
+/* ============================================================ 05 — FAQ */
+
+.faq__inner {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.faq__list {
+  margin-top: clamp(36px, 5vw, 56px);
+  border-top: 1px solid var(--hairline-mid);
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--hairline-mid);
+}
+
+.faq__q {
+  width: 100%;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: clamp(15px, 1.8vw, 18px);
+  text-align: left;
+  padding: 24px 0;
+  display: flex;
+  gap: 20px;
+  align-items: baseline;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.faq__q:hover,
+.faq__q:focus-visible {
+  color: var(--coral);
+}
+
+.faq__sign {
+  color: var(--coral);
+  font-size: 20px;
+  line-height: 1;
+  flex: none;
+}
+
+.faq__a {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--answer);
+  margin: 0;
+  padding: 0 0 26px;
+  max-width: 64ch;
+}
+
+.faq__a[hidden] {
+  display: none;
+}
+
+/* ==================================================== CTA final + rodapé */
+
+.cta {
+  padding: clamp(88px, 12vw, 180px) var(--section-x);
+  text-align: center;
+}
+
+.cta__layer {
+  left: 50%;
+  top: 50%;
+  width: min(900px, 130vw);
+  opacity: 0.09;
+  /* The parallax transform has to preserve this centring. */
+  transform: translate(-50%, -50%);
+}
+
+.cta__inner {
+  position: relative;
+  max-width: 840px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(24px, 3vw, 36px);
+}
+
+.cta__eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--blue);
+  text-transform: uppercase;
+}
+
+.cta .h2 {
+  font-size: clamp(30px, 5.6vw, 66px);
+  line-height: 1.08;
+  margin: 0;
+}
+
+.cta__lede {
+  max-width: 52ch;
+  font-size: clamp(16px, 1.7vw, 19px);
+}
+
+.body-wrap a.cta__button {
+  background: var(--coral);
+  color: var(--bg-alt);
+  font-family: var(--mono);
+  font-size: clamp(13px, 1.5vw, 15px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 20px 40px;
+  display: inline-block;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.body-wrap a.cta__button:hover,
+.body-wrap a.cta__button:focus-visible {
+  background: var(--coral-hover);
+  color: var(--bg-alt);
+}
+
+.cta__contact {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+}
+
+.footer {
+  border-top: 1px solid var(--hairline);
+  padding: clamp(36px, 5vw, 56px) var(--section-x);
+}
+
+.footer__inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer__mark {
+  height: clamp(22px, 3vw, 30px);
+  color: var(--coral);
+}
+
+.footer__mark svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+.footer__note {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+}
+
+/* ------------------------------------------------------------- reveal ----
+
+   The initial hidden state is applied by JS, not here, so that a failed or
+   blocked script leaves a complete page rather than a blank one. */
+
+[data-reveal].is-hidden {
+  opacity: 0;
+  transform: translateY(26px);
+}
+
+[data-reveal] {
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 0.7, 0.3, 1),
+    transform 0.8s cubic-bezier(0.22, 0.7, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal].is-hidden {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

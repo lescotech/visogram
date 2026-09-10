@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Archivo:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  body { margin: 0; background: #262e38; }
+  a { color: #e07a6e; text-decoration: none; }
+  a:hover { color: #efa79e; }
+  ::selection { background: #e07a6e; color: #1e252d; }
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="background:#262e38;color:#e8eef5;font-family:Archivo,system-ui,sans-serif;overflow-x:hidden;position:relative">
+
+<section style="position:relative;padding:clamp(72px,11vw,160px) clamp(20px,6vw,96px);overflow:hidden">
+  <img src="./assets/elemento-fundo.svg" alt="" data-par="0.22" style="position:absolute;right:-14%;top:-10%;width:min(760px,105vw);opacity:.13;pointer-events:none;will-change:transform" />
+  <div style="position:relative;max-width:1180px;margin:0 auto">
+    <div data-reveal="" style="display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;color:#a9c4dd;text-transform:uppercase">
+      <span style="width:34px;height:1px;background:#e07a6e;display:block"></span>
+      <span>01 — O que é a Visogram</span>
+    </div>
+    <h2 data-reveal="" style="font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(30px,5.4vw,68px);line-height:1.08;margin:28px 0 0;max-width:16ch;text-wrap:balance">Ambientes reais,<br /><span style="color:#e07a6e">navegáveis em 360º</span></h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(28px,4vw,64px);margin-top:clamp(36px,5vw,64px);align-items:start">
+      <p data-reveal="" style="font-size:clamp(16px,1.6vw,19px);line-height:1.7;color:#c6d2de;margin:0;max-width:56ch">A Visogram produz tours virtuais para construtoras, imobiliárias e marcas que precisam mostrar ambientes em 360º como parte de apresentação de portfólio, serviço ou resultados de produtos aplicados.</p>
+      <p data-reveal="" style="font-size:clamp(16px,1.6vw,19px);line-height:1.7;color:#c6d2de;margin:0;max-width:56ch">Cada tour é um espaço explorável no navegador. Sem aplicativo, sem download, sem visita agendada: o cliente entra pelo link e percorre o imóvel como se estivesse lá dentro.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:1px;background:rgba(169,196,221,.16);margin-top:clamp(48px,6vw,88px);border-top:1px solid rgba(169,196,221,.16);border-bottom:1px solid rgba(169,196,221,.16)">
+      <div data-reveal="" style="background:#262e38;padding:26px 22px">
+        <img src="./assets/icon-eye.svg" alt="" style="height:44px;width:auto;display:block;margin-bottom:18px" />
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e8eef5">Panorâmica</div>
+        <div style="font-size:14px;line-height:1.6;color:#93a3b3;margin-top:8px">Captura esférica completa, do piso ao teto.</div>
+      </div>
+      <div data-reveal="" style="background:#262e38;padding:26px 22px">
+        <img src="./assets/icon-layers.svg" alt="" style="height:44px;width:auto;display:block;margin-bottom:18px" />
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e8eef5">Percepção</div>
+        <div style="font-size:14px;line-height:1.6;color:#93a3b3;margin-top:8px">Escala e profundidade reais do ambiente.</div>
+      </div>
+      <div data-reveal="" style="background:#262e38;padding:26px 22px">
+        <img src="./assets/icon-globe.svg" alt="" style="height:44px;width:auto;display:block;margin-bottom:18px" />
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e8eef5">Mapeamento</div>
+        <div style="font-size:14px;line-height:1.6;color:#93a3b3;margin-top:8px">Planta interativa ligando cada ponto de vista.</div>
+      </div>
+      <div data-reveal="" style="background:#262e38;padding:26px 22px">
+        <img src="./assets/icon-orbs.svg" alt="" style="height:44px;width:auto;display:block;margin-bottom:18px" />
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#e8eef5">Ecossistema</div>
+        <div style="font-size:14px;line-height:1.6;color:#93a3b3;margin-top:8px">Vários ambientes conectados em um só link.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<sc-if value="{{ showTelemetry }}" hint-placeholder-val="{{ true }}">
+<section style="background:#1e252d;border-top:1px solid rgba(169,196,221,.14);border-bottom:1px solid rgba(169,196,221,.14);padding:clamp(28px,4vw,44px) clamp(20px,6vw,96px);overflow:hidden">
+  <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px 48px;font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.2vw,13px);color:#7f93a6">
+    <div style="display:flex;justify-content:space-between;gap:12px"><span>Entropy status</span><span style="color:#a9c4dd">Online</span></div>
+    <div style="display:flex;justify-content:space-between;gap:12px"><span>Virtual vessel integrity</span><span style="color:#a9c4dd">100%</span></div>
+    <div style="display:flex;justify-content:space-between;gap:12px"><span>Visual operator</span><span style="color:#a9c4dd">Ready</span></div>
+    <div style="display:flex;justify-content:space-between;gap:12px"><span>Stasis</span><span style="color:#e07a6e">Disabled</span></div>
+    <div style="display:flex;justify-content:space-between;gap:12px"><span>Build</span><span style="color:#a9c4dd">1.0</span></div>
+    <div style="display:flex;justify-content:space-between;gap:12px"><span>FPS</span><span style="color:#a9c4dd">30</span></div>
+  </div>
+</section>
+</sc-if>
+
+<section style="position:relative;padding:clamp(72px,11vw,160px) clamp(20px,6vw,96px);overflow:hidden">
+  <img src="./assets/elemento-fundo-coral.svg" alt="" data-par="-0.16" style="position:absolute;left:-22%;bottom:-18%;width:min(680px,100vw);opacity:.1;pointer-events:none;will-change:transform" />
+  <div style="position:relative;max-width:1180px;margin:0 auto">
+    <div data-reveal="" style="display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;color:#a9c4dd;text-transform:uppercase">
+      <span style="width:34px;height:1px;background:#e07a6e;display:block"></span>
+      <span>02 — Como funciona</span>
+    </div>
+    <h2 data-reveal="" style="font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(28px,4.4vw,54px);line-height:1.12;margin:28px 0 clamp(44px,6vw,72px);max-width:20ch">Quatro etapas entre a visita e o link</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:clamp(24px,3vw,40px)">
+      <sc-for list="{{ steps }}" as="step" hint-placeholder-count="4">
+        <div data-reveal="" style="border-top:1px solid rgba(169,196,221,.22);padding-top:22px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(38px,5vw,60px);font-weight:300;color:#e07a6e;line-height:1">{{ step.n }}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.1em;text-transform:uppercase;margin-top:18px">{{ step.title }}</div>
+          <p style="font-size:15px;line-height:1.65;color:#93a3b3;margin:10px 0 0">{{ step.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="position:relative;background:#1e252d;padding:clamp(72px,11vw,160px) clamp(20px,6vw,96px);overflow:hidden">
+  <div style="position:relative;max-width:1180px;margin:0 auto">
+    <div data-reveal="" style="display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;color:#a9c4dd;text-transform:uppercase">
+      <span style="width:34px;height:1px;background:#e07a6e;display:block"></span>
+      <span>03 — Galeria de tours</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:20px;margin:28px 0 clamp(40px,5vw,64px)">
+      <h2 data-reveal="" style="font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(28px,4.4vw,54px);line-height:1.12;margin:0;max-width:16ch">Tours entregues</h2>
+      <a href="{{ waLink }}" target="_blank" rel="noopener" style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;border:1px solid rgba(169,196,221,.35);color:#a9c4dd;padding:12px 20px;display:inline-block" style-hover="border-color:#e07a6e;color:#e07a6e">Ver todos no WhatsApp</a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:clamp(16px,2vw,28px)">
+      <sc-for list="{{ tours }}" as="tour" hint-placeholder-count="4">
+        <div data-reveal="" data-tilt="" style="position:relative;background:#262e38;border:1px solid rgba(169,196,221,.14);overflow:hidden;will-change:transform;transition:border-color .4s ease">
+          <div style="position:relative;height:clamp(200px,24vw,260px)">
+            <image-slot id="{{ tour.slot }}" shape="rect" placeholder="{{ tour.hint }}"></image-slot>
+            <div style="position:absolute;top:12px;left:12px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#e8eef5;background:rgba(30,37,45,.72);padding:5px 9px;pointer-events:none">360º</div>
+          </div>
+          <div style="padding:20px 20px 22px">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.06em">{{ tour.name }}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7f93a6;margin-top:8px">{{ tour.meta }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <p data-reveal="" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7f93a6;margin-top:24px;line-height:1.7">Arraste uma captura de cada tour sobre os quadros acima e me envie os links para eu ligar os cards.</p>
+  </div>
+</section>
+
+<section style="position:relative;padding:clamp(72px,11vw,160px) clamp(20px,6vw,96px);overflow:hidden">
+  <img src="./assets/ilustracao.svg" alt="" data-par="0.3" style="position:absolute;right:6%;top:8%;height:min(420px,50vw);opacity:.22;pointer-events:none;will-change:transform" />
+  <div style="position:relative;max-width:1180px;margin:0 auto">
+    <div data-reveal="" style="display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;color:#a9c4dd;text-transform:uppercase">
+      <span style="width:34px;height:1px;background:#e07a6e;display:block"></span>
+      <span>04 — Para quem é</span>
+    </div>
+    <h2 data-reveal="" style="font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(28px,4.4vw,54px);line-height:1.12;margin:28px 0 clamp(44px,6vw,72px);max-width:18ch">Quem precisa mostrar espaço</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1px;background:rgba(169,196,221,.16)">
+      <sc-for list="{{ audiences }}" as="a" hint-placeholder-count="3">
+        <div data-reveal="" style="background:#262e38;padding:clamp(28px,3.4vw,44px) clamp(22px,2.6vw,34px)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#e07a6e;text-transform:uppercase">{{ a.tag }}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:400;margin-top:16px">{{ a.title }}</div>
+          <p style="font-size:15px;line-height:1.7;color:#93a3b3;margin:14px 0 0">{{ a.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="position:relative;background:#1e252d;padding:clamp(72px,11vw,160px) clamp(20px,6vw,96px)">
+  <div style="max-width:900px;margin:0 auto">
+    <div data-reveal="" style="display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.24em;color:#a9c4dd;text-transform:uppercase">
+      <span style="width:34px;height:1px;background:#e07a6e;display:block"></span>
+      <span>05 — Perguntas frequentes</span>
+    </div>
+    <div style="margin-top:clamp(36px,5vw,56px);border-top:1px solid rgba(169,196,221,.18)">
+      <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="5">
+        <div style="border-bottom:1px solid rgba(169,196,221,.18)">
+          <button type="button" onClick="{{ f.toggle }}" style="width:100%;background:none;border:0;color:#e8eef5;font-family:'JetBrains Mono',monospace;font-size:clamp(15px,1.8vw,18px);text-align:left;padding:24px 0;display:flex;gap:20px;align-items:baseline;justify-content:space-between;cursor:pointer" style-hover="color:#e07a6e">
+            <span>{{ f.q }}</span>
+            <span style="color:#e07a6e;font-size:20px;line-height:1">{{ f.sign }}</span>
+          </button>
+          <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:16px;line-height:1.7;color:#a8b6c4;margin:0;padding:0 0 26px;max-width:64ch">{{ f.a }}</p>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section style="position:relative;padding:clamp(88px,12vw,180px) clamp(20px,6vw,96px);overflow:hidden;text-align:center">
+  <img src="./assets/elemento-fundo.svg" alt="" data-par="0.14" style="position:absolute;left:50%;top:50%;width:min(900px,130vw);opacity:.09;pointer-events:none;transform:translate(-50%,-50%);will-change:transform" />
+  <div style="position:relative;max-width:840px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,3vw,36px)">
+    <div data-reveal="" style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.3em;color:#a9c4dd;text-transform:uppercase">A c c e s s i n g</div>
+    <h2 data-reveal="" style="font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(30px,5.6vw,66px);line-height:1.08;margin:0">Mande a planta.<br /><span style="color:#e07a6e">Devolvemos o espaço.</span></h2>
+    <p data-reveal="" style="font-size:clamp(16px,1.7vw,19px);line-height:1.7;color:#c6d2de;margin:0;max-width:52ch">Orçamento no mesmo dia. Conte o tipo de imóvel, a metragem e a cidade — o resto a gente resolve.</p>
+    <a data-reveal="" href="{{ waLink }}" target="_blank" rel="noopener" style="background:#e07a6e;color:#1e252d;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.5vw,15px);letter-spacing:.16em;text-transform:uppercase;padding:20px 40px;display:inline-block;font-weight:500" style-hover="background:#efa79e">Falar no WhatsApp</a>
+    <div data-reveal="" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#7f93a6;letter-spacing:.08em">{{ phoneLabel }} · <a href="https://instagram.com/visogram.tours" target="_blank" rel="noopener">@visogram.tours</a></div>
+  </div>
+</section>
+
+<footer style="border-top:1px solid rgba(169,196,221,.16);padding:clamp(36px,5vw,56px) clamp(20px,6vw,96px)">
+  <div style="max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between">
+    <img src="./assets/logo-coral.svg" alt="Visogram" style="height:clamp(22px,3vw,30px);width:auto" />
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6f8296">Tour virtual 360º · Brasil</div>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;whatsapp&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;47999201576&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Contato&quot;},&quot;parallax&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Sutil&quot;,&quot;Médio&quot;,&quot;Marcante&quot;],&quot;default&quot;:&quot;Marcante&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Movimento&quot;},&quot;showTelemetry&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Seções&quot;}}">
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.rootRef = React.createRef();
+    this.state = { open: 0 };
+  }
+
+  componentDidMount() {
+    const root = this.rootRef.current;
+    if (!root) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const intensity = { Sutil: 0.45, "Médio": 0.8, Marcante: 1.25 }[this.props.parallax] ?? 1.25;
+
+    const reveals = root.querySelectorAll('[data-reveal]');
+    reveals.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(26px)';
+      el.style.transition = 'opacity .8s cubic-bezier(.22,.7,.3,1) ' + ((i % 4) * 70) + 'ms, transform .8s cubic-bezier(.22,.7,.3,1) ' + ((i % 4) * 70) + 'ms';
+    });
+    const show = (el) => { el.style.opacity = '1'; el.style.transform = 'none'; };
+    this.revealPending = new Set(reveals);
+    setTimeout(() => {
+      this.revealPending.forEach((el) => {
+        if (el.getBoundingClientRect().top < window.innerHeight) { show(el); this.revealPending.delete(el); }
+      });
+    }, 1600);
+
+    const layers = Array.from(root.querySelectorAll('[data-par]')).map((el) => ({
+      el,
+      speed: parseFloat(el.getAttribute('data-par')) || 0,
+      centered: (el.style.transform || '').includes('translate(-50%'),
+    }));
+    const cards = Array.from(root.querySelectorAll('[data-tilt]'));
+
+    let ticking = false;
+    const frame = () => {
+      ticking = false;
+      const vh = window.innerHeight;
+      const mob = window.innerWidth < 760;
+      const k = (reduced ? 0 : intensity) * (mob ? 0.4 : 1);
+      this.revealPending.forEach((el) => {
+        if (el.getBoundingClientRect().top < vh * 0.92) { show(el); this.revealPending.delete(el); }
+      });
+      layers.forEach((l) => {
+        const r = l.el.getBoundingClientRect();
+        const d = (r.top + r.height / 2 - vh / 2) / vh;
+        const y = -d * 120 * l.speed * k;
+        l.el.style.transform = (l.centered ? 'translate(-50%,-50%) ' : '') + 'translate3d(0,' + y.toFixed(1) + 'px,0) rotate(' + (y * 0.02).toFixed(2) + 'deg)';
+      });
+      cards.forEach((c) => {
+        const r = c.getBoundingClientRect();
+        const d = Math.max(-1, Math.min(1, (r.top + r.height / 2 - vh / 2) / vh));
+        c.style.transform = 'translate3d(0,' + (-d * 16 * k).toFixed(1) + 'px,0)';
+      });
+    };
+    this.onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    window.addEventListener('resize', this.onScroll);
+    frame();
+    requestAnimationFrame(frame);
+    window.addEventListener('load', this.onScroll);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('load', this.onScroll);
+    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('resize', this.onScroll);
+  }
+
+  renderVals() {
+    const phone = this.props.whatsapp || '47999201576';
+    const digits = phone.replace(/\D/g, '');
+    const wa = 'https://wa.me/55' + digits + '?text=' + encodeURIComponent('Olá! Quero um orçamento de tour virtual 360º.');
+    const phoneLabel = '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 7) + '-' + digits.slice(7);
+
+    const faqData = [
+      ['Quanto tempo leva para o tour ficar pronto?', 'Entre 3 e 7 dias úteis a partir da captura, dependendo do número de ambientes. Obras e decorados grandes podem entrar em etapas, com a primeira parte no ar antes do restante.'],
+      ['O imóvel precisa estar mobiliado?', 'Não. Registramos obra bruta, imóvel vazio, decorado ou entregue. Cada fase conta uma história diferente e todas funcionam como material de venda.'],
+      ['Como o tour entra no meu site ou anúncio?', 'Você recebe um link e um código de incorporação. Funciona em site próprio, portais, e-mail, WhatsApp e apresentações — sem instalar nada.'],
+      ['Funciona bem no celular?', 'Sim. O tour abre direto no navegador do celular, com giro por toque e por sensor de movimento, além de modo óculos VR.'],
+      ['Vocês atendem fora da cidade?', 'Atendemos todo o Brasil. Fora da região de origem entra um custo de deslocamento, informado junto do orçamento.'],
+    ];
+    const faqs = faqData.map((f, i) => ({
+      q: f[0], a: f[1], open: this.state.open === i, sign: this.state.open === i ? '−' : '+',
+      toggle: () => this.setState((s) => ({ open: s.open === i ? -1 : i })),
+    }));
+
+    return {
+      rootRef: this.rootRef,
+      waLink: wa,
+      phoneLabel,
+      showTelemetry: this.props.showTelemetry ?? true,
+      faqs,
+      steps: [
+        { n: '01', title: 'Levantamento', body: 'Você manda a planta, a metragem e o prazo. Definimos quantos pontos de captura o espaço pede.' },
+        { n: '02', title: 'Captura 360º', body: 'Sessão no local com câmera panorâmica. Um dia costuma cobrir um decorado inteiro.' },
+        { n: '03', title: 'Montagem', body: 'Tratamento das imagens, ligação entre ambientes, planta interativa e pontos de informação.' },
+        { n: '04', title: 'Entrega', body: 'Link pronto e código de incorporação, hospedados por nós. Ajustes e novas fases entram depois.' },
+      ],
+      tours: [
+        { slot: 'vg-tour-1', name: 'Alpha One', meta: 'São Paulo/SP · Construcompany', hint: 'Captura do tour Alpha One' },
+        { slot: 'vg-tour-2', name: 'Tour 02', meta: 'Cidade · Cliente', hint: 'Captura do tour 02' },
+        { slot: 'vg-tour-3', name: 'Tour 03', meta: 'Cidade · Cliente', hint: 'Captura do tour 03' },
+        { slot: 'vg-tour-4', name: 'Tour 04', meta: 'Cidade · Cliente', hint: 'Captura do tour 04' },
+      ],
+      audiences: [
+        { tag: 'Construtoras', title: 'Vender na planta com o espaço já de pé', body: 'Decorado, obra em andamento e área comum viram material de venda antes da entrega das chaves. O corretor abre o tour na mesa e o cliente entende a metragem.' },
+        { tag: 'Imobiliárias', title: 'Filtrar visita antes de sair do escritório', body: 'O interessado percorre o imóvel pelo link e chega na visita presencial já decidido. Menos deslocamento por curiosidade, mais proposta.' },
+        { tag: 'Marcas', title: 'Mostrar o produto aplicado no ambiente', body: 'Revestimento, mobiliário, iluminação e acabamento registrados dentro do projeto real, prontos para portfólio e apresentação comercial.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
