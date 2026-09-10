@@ -84,7 +84,7 @@
 }
 
 /* Inline links only. Component links qualify themselves past this — a bare
-   .ghost or .cta__button loses to (0,1,1) and inherits coral, which on the
+   .cta__button loses to (0,1,1) and inherits coral, which on the
    coral button means invisible text. */
 .body-wrap a {
   color: var(--coral);
@@ -336,38 +336,16 @@
 
 /* ======================================================= 03 — Galeria */
 
+/* The handoff pairs the heading with a "Ver todos no WhatsApp" ghost button.
+   That link is gone: the tours are now entered here, on the page, so sending
+   people to a chat to see them would be sending them away from them. */
 .gallery__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
   margin: 28px 0 clamp(40px, 5vw, 64px);
 }
 
 .gallery__head .h2 {
   margin: 0;
   max-width: 16ch;
-}
-
-.body-wrap a.ghost {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  border: 1px solid var(--hairline-strong);
-  color: var(--blue);
-  /* The handoff's 12px 20px lands under the 44px touch target it also asks
-     for, so the block is padded to reach it without changing the type. */
-  padding: 15px 20px;
-  display: inline-block;
-  transition: border-color 0.3s ease, color 0.3s ease;
-}
-
-.body-wrap a.ghost:hover,
-.body-wrap a.ghost:focus-visible {
-  border-color: var(--coral);
-  color: var(--coral);
 }
 
 .tours {
@@ -386,9 +364,20 @@
   color: inherit;
 }
 
-/* Only cards that became links get the hover — the rest are not clickable. */
-a.tour:hover,
-a.tour:focus-visible {
+/* main.ts swaps each card for a button once the viewer can open it, so the
+   card has to shed the browser's own button styling without changing shape. */
+button.tour {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Only cards that became buttons can be entered — the rest are not clickable. */
+button.tour:hover,
+button.tour:focus-visible {
   border-color: var(--coral);
   color: inherit;
 }
@@ -417,6 +406,30 @@ a.tour:focus-visible {
   background: rgb(17 26 37 / 0.72);
   padding: 5px 9px;
   pointer-events: none;
+}
+
+/* Added by main.ts, and only to a card that can actually be opened. The badge
+   says what the thing is; this says what you can do with it. */
+.tour__enter {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgb(17 26 37 / 0.72);
+  padding: 5px 9px;
+  opacity: 0.85;
+  pointer-events: none;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+button.tour:hover .tour__enter,
+button.tour:focus-visible .tour__enter {
+  color: var(--coral);
+  opacity: 1;
 }
 
 .tour__meta {

@@ -23,8 +23,17 @@ export interface Tour {
   cenas: number;
   /** Viewer convention: radians for yaw and pitch, degrees of vertical fov. */
   vista: { yaw: number; pitch: number; fov: number };
+  /** 2560 equirect: the desktop texture. */
   src: string;
-  srcSmall: string;
+  /**
+   * 4096 equirect, for narrow viewports. Counter-intuitively the biggest of the
+   * three — a portrait panel crops the horizontal field of view instead of
+   * scaling it, so a phone needs more texels per degree than a monitor, not
+   * fewer. The reasoning is written out in tools/build-tours.mjs.
+   */
+  srcDense: string;
+  /** 1280 equirect, for Save-Data. */
+  srcLite: string;
   /**
    * Mean luminance of the horizon band, 0-255, measured at build time. Purely
    * informational: the tours are shown at their true brightness, so this is
@@ -32,8 +41,9 @@ export interface Tour {
    */
   luma: number;
   /**
-   * Published tour URL. Absent until tours.lesco.com.br goes live, and the
-   * gallery card stays unlinked while it is.
+   * Published tour URL on tours.lesco.com.br. Still absent — the viewer's
+   * config.js leaves URL_BASE blank — and nothing on the page depends on it any
+   * more: the gallery opens the tour in place, from `src/tour/scenes.json`.
    */
   url?: string;
   /** A few hundred bytes of blur, shown while the panorama downloads. */
@@ -55,7 +65,8 @@ export const asset = (path: string): string =>
 export const TOURS: Tour[] = (data as unknown as Tour[]).map((tour) => ({
   ...tour,
   src: asset(tour.src),
-  srcSmall: asset(tour.srcSmall),
+  srcDense: asset(tour.srcDense),
+  srcLite: asset(tour.srcLite),
 }));
 
 /** "São Paulo/SP · Setin" — city, state, and the client who commissioned it. */

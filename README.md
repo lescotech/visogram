@@ -20,12 +20,14 @@ npm run dev
 | `npm run dev` | Vite dev server |
 | `npm run build` | typecheck, then build (strips `_`-prefixed dev assets) |
 | `npm run tours` | pulls tour panoramas out of the viewer → `public/tours` + manifest |
+| `npm run scenes` | exports *every* scene of every tour for the in-page 360 viewer |
 | `npm run cards` | reprojects gallery thumbnails from those panoramas |
 | `npm run icons` | crops the four feature icons out of the brand sprite |
 | `npm run fonts` | subsets the installed PP Supply Mono to `public/fonts` |
 | `npm run svg` | flattens the Illustrator exports into `src/assets/inline` |
 | `npm run geometry` | derives the wireframe's 3D scene from its SVG |
 | `npm run verify` | measures that derivation against the original vector |
+| `npm run verify:tour` | raycasts the viewer's camera convention against three.js |
 
 `npm run tours` looks for the viewer at `../LESCO-VIEWER`; override with
 `LESCO_VIEWER=<path>`.
@@ -95,22 +97,45 @@ pointing at a seam.
 ```bash
 node tools/preview-hero.mjs biotique c16 0.628 0.18 76
 SCRIM=1 node tools/preview-hero.mjs biotique c16     # with the mask composited
+SHAPE=phone SCRIM=1 node tools/preview-hero.mjs biotique c16 0.628 0.18
 ```
+
+`SHAPE=phone` renders 355x792 and switches to the mobile scrim. Use it for any
+framing judgement about phones: the desktop preview says nothing about them,
+because the aspect ratio decides the horizontal angle (below).
 
 An explicit fov is the effective vertical angle, unclamped, so framings outside
 the page's range can be explored; omit it and the preview reproduces exactly what
 the page does.
 
-| | 2560 | 1280 |
-| --- | --- | --- |
-| Biotique | 50KB | 17KB |
-| Alpha One | 129KB | 37KB |
-| JHA Boutique | 253KB | 66KB |
-| Lavvi | 329KB | 90KB |
+| | 2560 `src` | 4096 `srcDense` | 1280 `srcLite` |
+| --- | --- | --- | --- |
+| Biotique | 221KB | 442KB | 69KB |
+| Alpha One | 129KB | 290KB | 37KB |
+| JHA Boutique | 253KB | 643KB | 66KB |
+| Lavvi | 329KB | 735KB | 90KB |
 
 Only the first slide blocks; the rest are warmed while the previous one is on
-screen. Narrow viewports and `Save-Data` get the 1280 set, and `Save-Data` holds
-a single slide instead of cycling.
+screen. `Save-Data` gets `srcLite` and holds a single slide instead of cycling.
+
+**A phone gets the *biggest* texture, not the smallest.** This is the one thing
+about the pipeline that reads as a mistake, so: the camera's fov is the vertical
+angle, and the aspect ratio decides how much you get across. A phone panel is
+355x792, so 76º vertical is 41º horizontal — a phone spends the same screen on a
+tenth of the room a desktop shows. Fewer degrees over the same pixels, at DPR 2,
+is about 21 device px/degree against 12 on a monitor.
+
+Shipping the 1280 set to phones therefore magnified it **5.8x** and the panorama
+arrived as mush. The tiers now go by what the device needs: `srcDense` is 11.4
+texels/degree, so a phone renders at 1.34x. Desktop is unchanged at 1.9x, which
+is the level that was already judged fine.
+
+Full-fat is 2.1MB across four slides, 442KB of it before first paint. That is
+deliberate — the brief was to spend data for quality here — but it is the
+*download*; what actually bounds a phone is texture memory, which is why
+`CACHE_MAX` in `panorama.ts` keeps three panoramas resident rather than all four.
+A 4096x2048 texture is 43MB mipmapped, and four would ask iOS for 170MB, which
+is where it starts dropping the WebGL context and the hero vanishes mid-cycle.
 
 ### Matching the viewer's projection
 
@@ -144,7 +169,29 @@ node tools/make-pano-probe.mjs     # regenerate the probe
 
 `src/hero/panorama.ts`: `PAN_SPEED` (1.2 deg/s), `HOLD` (9s), `FADE` (2.2s),
 `FOV_SCALE` (1 — each scene's own angle), `FOV_MIN`/`FOV_MAX` (46/84),
-`PITCH_LIMIT` (0.18).
+`PITCH_LIMIT` (0.18), `H_SWEEP` (88), `FOV_MAX_TALL` (104), `CACHE_MAX` (3 on
+narrow viewports).
+
+`H_SWEEP` and `FOV_MAX_TALL` are the mobile framing, and the only two numbers
+here with no measurement behind them — the print has no mobile counterpart. The
+scene's own vertical angle is treated as a floor: the camera widens until at
+least `H_SWEEP` degrees are on screen, capped at `FOV_MAX_TALL` vertical before
+the projection starts to fisheye. There is deliberately no aspect threshold —
+at any aspect above 1.24 the scene's own angle already wins, so desktop framing
+is untouched and a window resized across the crossover has nothing to jump over.
+
+| panel | vertical | horizontal |
+| --- | --- | --- |
+| 1440x900 desktop | 76º (the scene's) | 104º |
+| 768x1024 tablet | 104º | 88º |
+| 375x812 phone | 104º | 60º |
+| 375x812 phone, before | 76º | **41º** |
+
+`PITCH_LIMIT` is **not** tightened on a tall panel, though an early pass did
+tighten it. Each cover's pitch is where whoever built the tour centred the shot;
+a wider vertical angle opens up symmetrically around that centre, so keeping it
+keeps their composition. Clamping towards the horizon instead quietly re-framed
+Biotique, whose whole subject is the clad volume above eye level.
 
 `src/style.css`: `--scrim-near` .52, `--scrim-far` .18, `--scrim-foot` .72.
 Light sideways so the room still reads, and weighted at the foot, because that is
@@ -153,6 +200,63 @@ where all the small type lives. Picked by compositing the darkest scene
 in place — a single sideways value bright enough for one washes out the other.
 The headline and the reel also carry a `text-shadow`, which buys the last of the
 contrast more cheaply than darkening the tour further.
+
+## The 360 viewer
+
+The gallery cards in section 03 open the tour on the page: a full-screen overlay
+you drag to look around, with the tour's other rooms in a strip along the bottom
+and, where the tour has them, its doorways placed in the panorama itself.
+`src/tour/viewer.ts`, `src/tour/viewer.css`.
+
+**Nothing of it loads until someone opens a tour.** three.js, the viewer, its
+stylesheet and a manifest of thirty scenes are all behind one dynamic import,
+warmed on `pointerenter`/`focus` so the click opens rather than waits. The chunk
+is 14KB gzipped on top of the three.js the hero already pulls.
+
+| chunk | | |
+| --- | --- | --- |
+| `three` | 470KB | 118KB gzip — shared with the hero |
+| `viewer` | 31KB | 14KB gzip, manifest included |
+| `viewer.css` | 4.4KB | 1.4KB gzip |
+
+**Two renderers, one convention.** The hero turns two *spheres* slowly and
+cross-fades between tours; the viewer turns the *camera*, because one camera can
+carry the visitor's heading across a scene change. Both centre the same texture
+column — `src/projection.ts` derives why, and `npm run verify:tour` proves it by
+raycasting a real three.js sphere rather than by re-deriving the maths. It also
+checks all 20 hotspot markers project to the centre of frame when faced, and
+behind the camera from the opposite side.
+
+**Assets.** `npm run scenes` exports every scene of every published tour to
+`public/tours/<slug>/`: 4096 wide (what the Lesco Viewer itself serves for a tour
+you explore), a 2048 variant for narrow viewports and `Save-Data`, a reprojected
+thumbnail for the strip, and a ~250-byte inline placeholder. 30 scenes, 13.3MB,
+none of it fetched until you walk into the room. The manifest is
+`src/tour/scenes.json`; its paths are rebased at runtime like the hero's.
+
+**Where a tour opens.** On the cover scene — the same frame the gallery card
+shows, clamped to the card's own 0.18 pitch so the door and the room agree. Every
+other scene keeps the framing its author composed in the viewer, guarded at
+0.5rad. Check any of it with `node tools/preview-tour.mjs [slug] [scene]`, which
+reprojects on the CPU and writes a contact sheet to `./preview-tours.png`.
+
+**Moving between rooms.** A doorway keeps your heading — you walked through it.
+A jump from the strip lands on that scene's own framing instead. Only Biotique
+has doorways (20 of them); the other three were built as a set of rooms with no
+graph between them, which is why the strip, not the hotspots, is the primary way
+around.
+
+**Knobs.** `FOV_MIN`/`FOV_MAX` 32/100, `PITCH_LIMIT` 85º, `FADE` 0.5s, `DAMPING`
+5.5 (inertia falls to 1/e in 180ms), `DRAG_SLOP` 6px, `KEY_STEP` 0.08rad.
+A drag moves the room by the distance the finger travels — `rad(fov) / height`
+per pixel — so zooming in slows the turn to match.
+
+**Behaviour.** Esc and the browser's back gesture both close it (the overlay
+pushes one history entry and unwinds only its own). `.page` and `.body-wrap` go
+`inert` while it is up, Tab is trapped inside, focus returns to the card that
+opened it, and the hero's renderer is paused — two WebGL contexts drawing at once
+is a real cost on a phone for a picture nobody can see. Nothing animates on its
+own: a settled view draws one frame and stops.
 
 ## Measurements
 
@@ -264,18 +368,22 @@ not match the shapes it crops (its `icon-eye` is the four-lobed aperture, its
 and crops it to the card (155KB for all four). All four cards carry real names,
 cities and clients from the tour manifest.
 
-**Still pending: the tour URLs.** Cards ship as plain blocks and are upgraded to
-`<a target="_blank">` by `main.ts` only for tours that have a `url` in the
-manifest. Nothing is published yet, so today they are all inert rather than
-pretending to be clickable.
+**The cards open the tour.** They ship as plain blocks and `main.ts` upgrades
+each one to a `<button>`, so a page whose script never ran shows a gallery rather
+than four controls that do nothing. See *The 360 viewer* below. `tours.lesco.com.br`
+is still unpublished — the viewer's `config.js` leaves `URL_BASE` blank — and
+nothing on the page waits for it any more.
 
 **Two type/layout adjustments** forced by the different font metrics and worth
 knowing about:
 
 - `.h2--lead` is `19ch`, not the handoff's `16ch`. At 16ch PP Supply Mono reflows
   the second line and drops "360º" to a third, breaking the authored `<br>`.
-- The ghost button is padded `15px 20px`, not `12px 20px`, so it clears the 44px
-  touch target the handoff also asks for. Type is untouched.
+
+**Removed from the handoff: the gallery's "Ver todos no WhatsApp" ghost button.**
+The tours are entered on the page now, so a link sending people to a chat to see
+them would have been sending them away from them. Its `.ghost` rules went with
+it; nothing else used them.
 
 ### Motion
 
@@ -314,9 +422,9 @@ JS. The handoff's prototype had no accessibility to port, so `aria-expanded` and
 
 ### Contact
 
-One source: `src/hero/contact.ts`. The hero's WhatsApp mark, the gallery's ghost
-button and the final CTA all resolve through `whatsappHref()`, and the displayed
-`(47) 99920-1576` is derived from the same digits rather than typed twice.
+One source: `src/hero/contact.ts`. The hero's WhatsApp mark and the final CTA
+both resolve through `whatsappHref()`, and the displayed `(47) 99920-1576` is
+derived from the same digits rather than typed twice.
 
 ## Open questions
 
@@ -341,8 +449,30 @@ button and the final CTA all resolve through `whatsappHref()`, and the displayed
   same artwork as `#ACC5E5`. Currently following the SVGs — `--line`.
 - **"Imersive"** is spelled that way in the brand book. Kept as-is.
 - The hero's **mobile layout**, **CTA placement**, **reel** and **slideshow
-  order** are extensions — the print has no counterpart for any of them.
+  order** are extensions — the print has no counterpart for any of them. On a
+  phone the logo and the WhatsApp mark now share a row, logo left and mark
+  right, which is the print's own arrangement; they were stacked before, where
+  the mark read as a second brand element rather than a control. The row is
+  `.layout__head`, which is `display: contents` on desktop so both children
+  keep their measured positions on the 1:1 grid.
+- **The mobile framing** is the same kind of extension and is the one with real
+  numbers attached: `H_SWEEP` and `FOV_MAX_TALL` under Knobs, above.
 - The tours are named client work (Setin, Lavvi, Construcompany). Portfolio use,
-  but worth a conscious decision before the page is public.
+  but worth a conscious decision before the page is public — and a larger one
+  now: the page no longer shows a frame of each tour, it hands over all 30
+  scenes of all four. `ORDER` in `tools/tours-config.mjs` is where a tour would
+  be dropped from the set.
+- **The "Explorar" chip on each card** is mine, not the handoff's — a persistent
+  10px mono label bottom-right of the frame, coral on hover, mirroring the
+  existing `360º` badge. It is there because a card that opens something has to
+  say so on a touch screen too, where there is no hover to reveal it.
+- **The hero has no way in.** Its background is a real tour and the reel already
+  names which one, but the only control there is the WhatsApp mark, trimmed to
+  one CTA on purpose. Adding "explorar este tour" to the reel is a composition
+  change and was left alone.
+- **The viewer's chrome** — the top bar, the scene strip, the doorway markers,
+  their pulse — has no counterpart in the brand book or the handoff. It is built
+  from the same tokens and house rules as everything else, but it is new design
+  and should be looked at as such.
 - Fonts: Archivo comes from Google Fonts at runtime. Self-hosting it alongside
   PP Supply Mono would remove the third-party request.

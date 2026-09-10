@@ -294,6 +294,13 @@ body {
   inset: 0;
 }
 
+/* The measured layout positions the logo and the CTA independently, so the
+   row that groups them on a phone must not generate a box here — otherwise it
+   becomes their containing block and the 1:1 grid stops resolving. */
+.layout__head {
+  display: contents;
+}
+
 .layout__brand {
   position: absolute;
   left: calc(27.9 * var(--pt));
@@ -617,13 +624,29 @@ body {
     bottom: auto;
   }
 
-  .layout__brand {
-    width: min(62vw, 300px);
+  /* Logo left, action right, same as the print — rather than the mark sitting
+     under the logo, which read as a second brand element instead of a control.
+     The row is the wrapper's job on a phone; on desktop it steps out of the way
+     (display: contents) so both children keep their measured positions. */
+  .layout__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 4vw, 24px);
   }
 
-  /* The mark sits under the logo, at a size that still reads as a target. */
+  .layout__brand {
+    width: min(58vw, 300px);
+  }
+
+  /* Centred on the logo by the flex row, and never squeezed by it: the logo has
+     the flexible width, the mark keeps its own. */
+  .contact {
+    flex: none;
+  }
+
   .contact__quote {
-    width: clamp(46px, 13vw, 58px);
+    width: clamp(44px, 12vw, 54px);
   }
 
   .headline {

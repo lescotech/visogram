@@ -3,7 +3,7 @@
  *
  * The number and the message come from the design handoff, which is where they
  * were finally confirmed. Everything on the page that converts — the hero's
- * WhatsApp mark, the gallery's ghost button, the final CTA — resolves through
+ * WhatsApp mark and the final CTA — resolves through
  * here, so there is one place to change it.
  */
 export interface Contact {

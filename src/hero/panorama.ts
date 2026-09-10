@@ -27,6 +27,7 @@ import {
   WebGLRenderer,
 } from 'three';
 
+import { YAW_ORIGIN } from '../projection';
 import { TOURS, type Tour } from './tours';
 
 // ---------------------------------------------------------------- the knobs
@@ -50,27 +51,39 @@ const FADE = 2.2;
 const FOV_SCALE = 1;
 const FOV_MIN = 46;
 const FOV_MAX = 84;
-/** The covers' own pitch runs up to 23º; past this a backdrop shows ceiling. */
-const PITCH_LIMIT = 0.18;
 /**
- * Aligns our sphere with the viewer's yaw convention, so `vista.yaw` frames the
- * same wall here as it does in the tour itself.
+ * The floor under the framing above, and what actually fixes mobile.
  *
- * The viewer's shader samples `u = atan2(d.x, -d.z) / 2pi + 0.5` along a ray
- * matrix built by `raioDeTela`, which negates its third column — so the centre
- * ray at yaw 0 is -Z, not +Z, and lands on `u = 0.5`. In general the viewer
- * centres `u = 0.5 - yaw/2pi`; note that its yaw grows towards *lower* u.
+ * The camera's fov is the *vertical* angle, so the aspect ratio decides how
+ * much you get across. A desktop panel is wide, and 76º vertical comes to
+ * about 110º horizontal — a room. The same 76º on a 355x792 phone panel is 41º
+ * across: one wall, which is what the hero was showing. So the scene's angle
+ * becomes a floor rather than the answer, and we widen until at least H_SWEEP
+ * degrees are on screen, up to a vertical ceiling where the projection starts
+ * to look like a fisheye.
  *
- * Three's SphereGeometry lays out `x = -cos(2pi·u)`, `z = sin(2pi·u)`, and
- * mirroring it to face inwards flips x, so a mesh rotation of `t` centres
- * `u = t/2pi - 0.25`. Equating the two gives `t = 1.5pi - yaw`.
+ * No aspect threshold, deliberately: at any wide aspect the scene's own angle
+ * already exceeds what H_SWEEP asks for and wins outright, so desktop framing
+ * is untouched, and a window resized across the crossover has nothing to jump
+ * over. The crossover sits at aspect 1.24.
  *
- * Missing that negation the first time put every slide half a turn out — worth
- * remembering that the probe at /pano-check.html can only confirm this maths is
- * self-consistent, not that the convention it targets is the right one.
+ * These two are the mobile framing, and the print has no mobile counterpart to
+ * measure against, so they are a starting point rather than a measurement.
+ * Judge any change with `SHAPE=phone SCRIM=1 node tools/preview-hero.mjs …`.
  */
-const YAW_ORIGIN = 1.5 * Math.PI;
-
+const H_SWEEP = 88;
+const FOV_MAX_TALL = 104;
+/**
+ * The covers' own pitch runs up to 23º; past this a backdrop shows ceiling.
+ *
+ * This is deliberately *not* tightened on a tall panel. Each cover's pitch is
+ * where whoever built the tour centred the shot, chosen against this cap; a
+ * wider vertical angle opens up symmetrically around that centre, so keeping
+ * the pitch keeps their composition and only adds to it. Clamping it towards
+ * the horizon instead would quietly re-frame Biotique, whose whole subject is
+ * the clad volume above eye level.
+ */
+const PITCH_LIMIT = 0.18;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 /** Cosine ease, so the cross-fade has no hard edges at either end. */
 const ease = (t: number) => 0.5 - Math.cos(Math.PI * clamp(t, 0, 1)) / 2;
@@ -93,6 +106,13 @@ export interface Panorama {
   onSlide(listener: (tour: Tour, index: number) => void): void;
   /** Jump to a slide, restarting the hold timer. */
   go(index: number): void;
+  /**
+   * Stop drawing. The tour viewer covers this canvas completely, and two WebGL
+   * contexts rendering at once is a real cost on a phone for a picture nobody
+   * can see.
+   */
+  pause(): void;
+  resume(): void;
   destroy(): void;
 }
 
@@ -114,10 +134,20 @@ export function createPanorama(
   const saveData = Boolean(
     (navigator as { connection?: { saveData?: boolean } }).connection?.saveData,
   );
-  const small = window.innerWidth < 900 || saveData;
+  /**
+   * Which texture tier to pull. Save-Data is the frugal path — an explicit
+   * request to spend less, which we honour. A narrow viewport is the opposite:
+   * see `srcDense`. These used to be one flag, which is how phones ended up
+   * with the 1280 texture magnified almost six times.
+   */
+  const dense = !saveData && window.innerWidth < 900;
+  const srcFor = (tour: Tour) =>
+    saveData ? tour.srcLite : dense ? tour.srcDense : tour.src;
 
   const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.5 : 2));
+  // Rendering below the device's own ratio is the one blur a sharper texture
+  // cannot fix, so only Save-Data pays that price now.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, saveData ? 1.5 : 2));
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(60, 1, 0.1, 100);
@@ -129,9 +159,47 @@ export function createPanorama(
   geometry.scale(-1, 1, 1);
 
   const loader = new TextureLoader();
-  /** Decoded textures kept by slug: the slideshow loops, so re-fetching and
+  /** Decoded textures kept by url: the slideshow loops, so re-fetching and
    *  re-uploading the same panorama every cycle is pure waste. */
   const cache = new Map<string, Texture>();
+  /**
+   * How many panoramas may sit on the GPU at once. A 4096x2048 texture is 32MB
+   * as RGBA and 43MB once mipmapped, so holding all four dense tours would ask
+   * a phone for 170MB of texture memory — which is where iOS starts dropping
+   * the WebGL context, and the hero would vanish mid-slideshow. Three covers
+   * everything on screen or about to be: the slide showing, the one fading out
+   * and the one being warmed. On desktop the textures are a quarter the size,
+   * so the whole set stays resident and the loop never refetches.
+   */
+  const CACHE_MAX = dense ? 3 : Infinity;
+  /** Insertion order is not use order, so evict against this instead. */
+  const used: string[] = [];
+
+  /** Never evict a texture a layer is still drawing, or the slide goes black. */
+  const inUse = () =>
+    new Set(layers.map((l) => l.material.map).filter(Boolean) as Texture[]);
+
+  /**
+   * Record a panorama as the most recently wanted, then evict down to budget,
+   * oldest first. The inline placeholders are a few hundred bytes and are never
+   * registered here, so they cost nothing and can never be evicted out from
+   * under a slide that has not got its full texture yet.
+   */
+  function touch(url: string) {
+    const at = used.indexOf(url);
+    if (at !== -1) used.splice(at, 1);
+    used.push(url);
+    if (used.length <= CACHE_MAX) return;
+    const live = inUse();
+    for (const candidate of [...used]) {
+      if (used.length <= CACHE_MAX) break;
+      const texture = cache.get(candidate);
+      if (!texture || live.has(texture)) continue;
+      texture.dispose();
+      cache.delete(candidate);
+      used.splice(used.indexOf(candidate), 1);
+    }
+  }
 
   const prepare = (texture: Texture) => {
     texture.colorSpace = SRGBColorSpace;
@@ -142,11 +210,15 @@ export function createPanorama(
     return texture;
   };
 
-  async function textureFor(url: string) {
+  async function textureFor(url: string, budgeted = false) {
+    if (budgeted) touch(url);
     const hit = cache.get(url);
     if (hit) return hit;
     const texture = prepare(await loader.loadAsync(url));
     cache.set(url, texture);
+    // Again on arrival: a slow download may have been overtaken by two more
+    // slides, and the budget is about what is resident, not what was asked for.
+    if (budgeted) touch(url);
     return texture;
   }
 
@@ -181,8 +253,19 @@ export function createPanorama(
   const camFrom = { pitch: 0, fov: 60 };
   const camTo = { pitch: 0, fov: 60 };
 
+  const deg = (r: number) => (r * 180) / Math.PI;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  /** Vertical angle that yields `h` degrees across, at the camera's aspect. */
+  const verticalFor = (h: number) =>
+    2 * deg(Math.atan(Math.tan(rad(h / 2)) / camera.aspect));
+
+  // Widen, never narrow: a scene already framed wider than H_SWEEP asks for
+  // keeps its own angle, which is every scene on a desktop.
   const fovFor = (tour: Tour) =>
-    clamp(tour.vista.fov * FOV_SCALE, FOV_MIN, FOV_MAX);
+    Math.min(
+      Math.max(clamp(tour.vista.fov * FOV_SCALE, FOV_MIN, FOV_MAX), verticalFor(H_SWEEP)),
+      FOV_MAX_TALL,
+    );
   const pitchFor = (tour: Tour) =>
     clamp(tour.vista.pitch, -PITCH_LIMIT, PITCH_LIMIT);
 
@@ -240,7 +323,7 @@ export function createPanorama(
         }
       })
       .catch(() => {});
-    void textureFor(small ? tour.srcSmall : tour.src)
+    void textureFor(srcFor(tour), true)
       .then((t) => {
         if (incoming.tour !== tour) return;
         incoming.material.map = t;
@@ -277,7 +360,7 @@ export function createPanorama(
     // never waits on the network.
     const upcoming = slides[(index + 1) % slides.length];
     if (upcoming && !saveData) {
-      void textureFor(small ? upcoming.srcSmall : upcoming.src);
+      void textureFor(srcFor(upcoming), true);
     }
     invalidate();
   }
@@ -289,6 +372,26 @@ export function createPanorama(
     if (!rect.width || !rect.height) return;
     renderer.setSize(rect.width, rect.height, false);
     camera.aspect = rect.width / rect.height;
+
+    // On a tall panel the framing is derived from the aspect, so it is not a
+    // per-slide constant any more: rotating a phone, or the address bar
+    // collapsing, has to re-solve it. Recomputing the target of a cross-fade
+    // in flight would make the camera jump, so mid-fade only the destination
+    // moves and the interpolation carries the camera there.
+    const current = layers[front]?.tour ?? layers[front === 0 ? 1 : 0]?.tour;
+    const incoming = layers[front === 0 ? 1 : 0]?.tour;
+    if (fading !== null && incoming) {
+      camTo.pitch = pitchFor(incoming);
+      camTo.fov = fovFor(incoming);
+    } else if (current) {
+      camTo.pitch = pitchFor(current);
+      camTo.fov = fovFor(current);
+      camFrom.pitch = camTo.pitch;
+      camFrom.fov = camTo.fov;
+      camera.rotation.x = camTo.pitch;
+      camera.fov = camTo.fov;
+    }
+
     camera.updateProjectionMatrix();
     invalidate();
   }
@@ -297,6 +400,7 @@ export function createPanorama(
 
   let frame = 0;
   let last = 0;
+  let paused = false;
 
   /** Push each layer's framing onto its mesh. */
   function applyPose() {
@@ -307,7 +411,7 @@ export function createPanorama(
   }
 
   function invalidate() {
-    if (frame) return;
+    if (frame || paused) return;
     if (document.hidden) {
       // A hidden document gets no animation frames, so nothing would ever be
       // drawn — a tab opened in the background would be revealed blank. Draw
@@ -390,6 +494,17 @@ export function createPanorama(
     },
     go(next) {
       if (next !== index) show(next);
+    },
+    pause() {
+      paused = true;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      last = 0;
+    },
+    resume() {
+      if (!paused) return;
+      paused = false;
+      invalidate();
     },
     destroy() {
       observer.disconnect();

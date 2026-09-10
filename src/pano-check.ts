@@ -26,7 +26,8 @@ const probe = (yaw: number): Tour => ({
   vista: { yaw, pitch: 0, fov: 76 },
   luma: 128,
   src: asset('/tours/_probe.webp'),
-  srcSmall: asset('/tours/_probe.webp'),
+  srcDense: asset('/tours/_probe.webp'),
+  srcLite: asset('/tours/_probe.webp'),
   lqip: asset('/tours/_probe.webp'),
 });
 

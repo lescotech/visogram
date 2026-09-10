@@ -10,3 +10,7 @@ dist/
 Thumbs.db
 *.local
 *.log
+
+# generated previews (preview-hero.mjs, preview-tour.mjs)
+preview-*.jpg
+preview-*.png

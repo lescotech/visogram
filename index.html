@@ -98,18 +98,22 @@
         <div class="panel__scrim" aria-hidden="true"></div>
 
         <div class="layout">
-          <div class="layout__brand" data-logo aria-label="Visogram" role="img"></div>
+          <!-- Logo and CTA are one row on a phone and two measured positions on
+               desktop, where this wrapper is display: contents. -->
+          <div class="layout__head">
+            <div class="layout__brand" data-logo aria-label="Visogram" role="img"></div>
 
-          <!-- Icon only, so the accessible name has to come from the label. -->
-          <div class="contact">
-            <a
-              class="contact__quote"
-              id="cta-quote"
-              href="#orcamento"
-              aria-label="Pedir orçamento pelo WhatsApp"
-            >
-              <span class="contact__icon" data-whatsapp aria-hidden="true"></span>
-            </a>
+            <!-- Icon only, so the accessible name has to come from the label. -->
+            <div class="contact">
+              <a
+                class="contact__quote"
+                id="cta-quote"
+                href="#orcamento"
+                aria-label="Pedir orçamento pelo WhatsApp"
+              >
+                <span class="contact__icon" data-whatsapp aria-hidden="true"></span>
+              </a>
+            </div>
           </div>
 
           <h1 class="headline">Imersive<br />Technology</h1>
@@ -245,15 +249,13 @@
       </section>
 
       <!-- 03 — Galeria de tours. Thumbnails geradas dos panoramas reais; os
-           cards viram link quando houver URL publicada no manifesto. -->
+           cards viram botão em src/main.ts e abrem o tour 360 na própria
+           página, sem sair para o viewer. -->
       <section class="section section--alt" aria-labelledby="galeria-titulo">
         <div class="section__inner">
           <p class="eyebrow" data-reveal>03 — Galeria de tours</p>
           <div class="gallery__head">
             <h2 class="h2" id="galeria-titulo" data-reveal>Tours entregues</h2>
-            <a class="ghost" id="cta-gallery" data-reveal href="#orcamento">
-              Ver todos no WhatsApp
-            </a>
           </div>
           <div class="grid tours" id="tours-grid">
             <div class="tour" data-reveal data-tilt data-slug="biotique">

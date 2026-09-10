@@ -1,0 +1,358 @@
+/*
+ * The 360 viewer overlay.
+ *
+ * Loaded with its module, so none of this is in the page until someone opens a
+ * tour. The house rules the rest of the site follows apply here too: radius 0,
+ * no shadows, no media queries — everything reflows through clamp() — and the
+ * palette and mono face come from the tokens style.css and body.css already
+ * declared on :root.
+ *
+ * The room is the subject, so the chrome is a thin layer of veils over it
+ * rather than a frame around it: type sits directly on the panorama, held
+ * legible by two gradients weighted where the small type lives.
+ */
+
+/* Nothing behind the overlay may scroll while it is up. */
+html[data-tour-open],
+html[data-tour-open] body {
+  overflow: hidden;
+}
+
+.v360 {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--navy);
+  color: var(--ice);
+  font-family: var(--mono);
+  /* A drag that runs off the panorama must not become a page gesture. */
+  overscroll-behavior: contain;
+}
+
+/* [hidden] alone loses to the layout declarations above it. */
+.v360[hidden] {
+  display: none;
+}
+
+/* -------------------------------------------------------------------- stage */
+
+.v360__stage {
+  position: absolute;
+  inset: 0;
+  /* The browser's own pan and zoom would fight the camera for every gesture. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.v360[data-grabbing] .v360__stage {
+  cursor: grabbing;
+}
+
+.v360__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+/* The canvas is the control surface, so it has to show its own focus. */
+.v360__canvas:focus-visible {
+  outline: 1px solid var(--sky);
+  outline-offset: -4px;
+}
+
+.v360__hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(120px, 17vh, 176px);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 9px 16px;
+  background: rgb(17 26 37 / 0.62);
+  color: var(--sky);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: v360-hint 5.5s ease forwards;
+}
+
+/* Says its piece and leaves; the first drag hides it outright. */
+@keyframes v360-hint {
+  0%,
+  8% {
+    opacity: 0;
+  }
+  18%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.v360__fail {
+  position: absolute;
+  inset: auto 0 50%;
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--rose);
+}
+
+/* --------------------------------------------------------------------- top */
+
+.v360__top {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(14px, 2.2vw, 24px) clamp(14px, 2.4vw, 30px)
+    clamp(40px, 5vw, 64px);
+  background: linear-gradient(180deg, rgb(23 34 47 / 0.78), rgb(23 34 47 / 0));
+  pointer-events: none;
+}
+
+.v360__top > * {
+  pointer-events: auto;
+}
+
+.v360__obra {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+.v360__where {
+  margin: 7px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sky);
+}
+
+.v360__acts {
+  display: flex;
+  gap: 8px;
+}
+
+.v360__ctrl {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(154 195 230 / 0.3);
+  background: rgb(17 26 37 / 0.5);
+  color: var(--sky);
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.v360__ctrl svg {
+  width: 21px;
+  height: 21px;
+}
+
+.v360__ctrl:hover,
+.v360__ctrl:focus-visible {
+  border-color: var(--rose);
+  color: var(--rose);
+}
+
+.v360__ctrl--close {
+  color: var(--ice);
+}
+
+/* --------------------------------------------------------------- hotspots */
+
+.v360__spots {
+  position: absolute;
+  inset: 0;
+  /* The layer is a coordinate space; only the markers themselves are targets. */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.v360__spot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ice);
+  font-family: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.3s ease;
+}
+
+.v360__spot svg {
+  width: 44px;
+  height: 44px;
+  animation: v360-spot 2.8s ease-in-out infinite;
+}
+
+.v360__spot span {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: rgb(17 26 37 / 0.62);
+  white-space: nowrap;
+}
+
+.v360__spot:hover,
+.v360__spot:focus-visible {
+  color: var(--rose);
+}
+
+/* A doorway has to read as a way through rather than as a decal on the wall. */
+@keyframes v360-spot {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* -------------------------------------------------------------------- foot */
+
+.v360__foot {
+  position: absolute;
+  inset: auto 0 0;
+  padding: clamp(36px, 5vw, 60px) clamp(14px, 2.4vw, 30px)
+    clamp(12px, 1.8vw, 20px);
+  background: linear-gradient(0deg, rgb(23 34 47 / 0.9), rgb(23 34 47 / 0));
+  pointer-events: none;
+}
+
+.v360__foot > * {
+  pointer-events: auto;
+}
+
+.v360__now {
+  margin: 0 0 11px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sky);
+}
+
+.v360__strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(154 195 230 / 0.35) transparent;
+  padding-bottom: 4px;
+}
+
+.v360__scene {
+  flex: 0 0 auto;
+  width: clamp(112px, 13vw, 148px);
+  padding: 0;
+  border: 1px solid rgb(154 195 230 / 0.16);
+  background: rgb(17 26 37 / 0.55);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.v360__scene img {
+  display: block;
+  width: 100%;
+  height: clamp(64px, 7.6vw, 88px);
+  object-fit: cover;
+  opacity: 0.66;
+  transition: opacity 0.3s ease;
+}
+
+.v360__scene span {
+  display: block;
+  padding: 7px 8px 9px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim, #7f93a6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.v360__scene:hover img,
+.v360__scene:focus-visible img,
+.v360__scene[aria-current='true'] img {
+  opacity: 1;
+}
+
+.v360__scene:hover,
+.v360__scene:focus-visible {
+  border-color: rgb(154 195 230 / 0.45);
+}
+
+.v360__scene[aria-current='true'] {
+  border-color: var(--rose);
+}
+
+.v360__scene:hover span,
+.v360__scene:focus-visible span,
+.v360__scene[aria-current='true'] span {
+  color: var(--ice);
+}
+
+/* ------------------------------------------------------------------ waiting */
+
+.v360__wait {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: rgb(154 195 230 / 0.18);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Indeterminate, and reusing the boot screen's own sweep — the wait is a
+   texture decode, which reports nothing worth showing as a percentage. */
+.v360__wait i {
+  display: block;
+  width: 26%;
+  height: 100%;
+  background: var(--sky);
+  animation: loader-sweep 1500ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v360__hint {
+    animation: none;
+  }
+
+  .v360__spot svg {
+    animation: none;
+    opacity: 0.9;
+  }
+
+  .v360__wait i {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

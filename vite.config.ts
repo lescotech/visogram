@@ -45,6 +45,18 @@ export default defineConfig({
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,
+    rollupOptions: {
+      output: {
+        /**
+         * Both renderers — the hero's slideshow and the tour viewer — load
+         * three.js, so Rollup lifts it into a chunk they share. Left alone it
+         * names that chunk after whichever small module happens to be shared
+         * too; naming it here means the 470KB in the network panel says what
+         * it actually is.
+         */
+        manualChunks: (id) => (id.includes('node_modules/three') ? 'three' : undefined),
+      },
+    },
   },
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
 });

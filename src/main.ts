@@ -69,7 +69,7 @@ function wireCta(id: string, href: string | null) {
 }
 
 const wa = whatsappHref(CONTACT);
-const wired = ['cta-quote', 'cta-gallery', 'cta-primary'].map((id) => wireCta(id, wa));
+const wired = ['cta-quote', 'cta-primary'].map((id) => wireCta(id, wa));
 if (wired.some((ok) => !ok)) {
   console.warn('[visogram] a CTA could not be wired — check src/hero/contact.ts');
 }
@@ -113,25 +113,65 @@ showSlide(0);
 // ------------------------------------------------------------- gallery cards
 
 /**
- * The cards ship as plain blocks and become links only once a tour has a
- * published URL. Nothing is published yet — the viewer's config.js names
- * tours.lesco.com.br but leaves URL_BASE blank — so today they all stay inert
- * rather than pretending to be clickable.
+ * The whole viewer — three.js, the overlay, its stylesheet and a manifest of
+ * thirty scenes — sits behind this one import, so the landing page carries
+ * none of it until somebody wants to walk into a room.
+ */
+let viewerChunk: Promise<typeof import('./tour/viewer')> | null = null;
+const loadViewer = () => (viewerChunk ??= import('./tour/viewer'));
+
+let resumeWired = false;
+
+async function enterTour(slug: string) {
+  const { openTour, onTourClose } = await loadViewer();
+  if (!resumeWired) {
+    onTourClose(() => panorama?.resume());
+    resumeWired = true;
+  }
+  // Nothing of the hero is visible under a full-screen overlay.
+  panorama?.pause();
+  if (!openTour(slug)) panorama?.resume();
+}
+
+/**
+ * The cards ship as plain blocks and become buttons here, so a page whose
+ * script never ran shows a gallery rather than four controls that do nothing.
+ *
+ * A card is enterable when the hero's manifest says the tour has scenes; both
+ * manifests are generated from the same viewer data, and `openTour` says so and
+ * bails if they ever disagree.
  */
 for (const card of document.querySelectorAll<HTMLElement>('.tour[data-slug]')) {
-  const tour = TOURS.find((t) => t.slug === card.dataset.slug);
-  if (!tour?.url) continue;
-  const link = document.createElement('a');
-  link.className = card.className;
-  link.href = tour.url;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
+  const slug = card.dataset.slug;
+  const tour = TOURS.find((t) => t.slug === slug);
+  if (!slug || !tour?.cenas) continue;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = card.className;
   for (const attr of ['data-reveal', 'data-tilt', 'data-slug'] as const) {
-    if (card.hasAttribute(attr)) link.setAttribute(attr, card.getAttribute(attr) ?? '');
+    if (card.hasAttribute(attr)) button.setAttribute(attr, card.getAttribute(attr) ?? '');
   }
-  link.setAttribute('aria-label', `Abrir o tour ${tour.obra} em nova aba`);
-  link.innerHTML = card.innerHTML;
-  card.replaceWith(link);
+  button.setAttribute(
+    'aria-label',
+    `Explorar o tour ${tour.obra} em 360º — ${tour.cenas} ambientes`,
+  );
+  button.innerHTML = card.innerHTML;
+
+  // The affordance only exists once the card can actually be entered.
+  const label = document.createElement('span');
+  label.className = 'tour__enter';
+  label.textContent = 'Explorar';
+  label.setAttribute('aria-hidden', 'true');
+  button.querySelector('.tour__frame')?.append(label);
+
+  button.addEventListener('click', () => void enterTour(slug));
+  // Warm the chunk on approach, so the click opens rather than waits.
+  const warm = () => void loadViewer();
+  button.addEventListener('pointerenter', warm, { once: true });
+  button.addEventListener('focus', warm, { once: true });
+
+  card.replaceWith(button);
 }
 
 // ------------------------------------------------------- body behaviour

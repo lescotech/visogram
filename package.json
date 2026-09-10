@@ -8,12 +8,14 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "tours": "node tools/build-tours.mjs",
+    "scenes": "node tools/build-scenes.mjs",
     "cards": "node tools/build-tour-cards.mjs",
     "icons": "node tools/split-icons.mjs",
     "fonts": "node tools/build-fonts.mjs",
     "svg": "node tools/inline-svg.mjs",
     "geometry": "node tools/extract-geometry.mjs",
-    "verify": "node tools/verify-geometry.mjs"
+    "verify": "node tools/verify-geometry.mjs",
+    "verify:tour": "node tools/verify-tour.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"
