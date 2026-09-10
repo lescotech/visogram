@@ -43,23 +43,23 @@ version, so when Vite moves to a new esbuild the warning comes back and
 
 ## Deploying
 
-Pushing to `main` builds the page and publishes it to GitHub Pages
-(`.github/workflows/deploy.yml`) at
-<https://matheusrgoularte.github.io/visogram/>.
+Vercel builds the page and deploys it: `main` goes to production, and every
+pull request gets a preview deployment of the same build. `npm run build`
+typechecks before it bundles, so a type error fails the deploy rather than
+shipping.
 
-That is a *project* page, so the site is served from `/visogram/` rather than a
-domain root, and `base` in `vite.config.ts` carries that path. Two things follow
-from it:
+Vercel serves from the domain root, so `base` in `vite.config.ts` is `/`. One
+thing still follows from it:
 
-- **`base` must match the repository name.** Rename the repo, or move to a
-  custom domain — which serves from the root — and `base` changes with it.
 - **Vite only rebases the paths it can see**: attributes in `index.html`, and
   `url()` in the CSS. The panorama paths in `tours.json` reach the texture
   loader as plain data, so they are rebased at runtime in `src/hero/tours.ts`
   instead. Anything else built from a string at runtime needs the same
-  treatment — `asset()` there is the one place that knows how.
+  treatment — `asset()` there is the one place that knows how. That is worth
+  keeping even with `base` at the root: it is what makes a move to a subpath,
+  or back to a project page, a one-line change in `vite.config.ts`.
 
-`npm run preview` serves the real build under `/visogram/`, which is the only
+`npm run preview` serves the real build the way Vercel does, which is the only
 way to catch a base-path mistake before it ships; `npm run dev` does too.
 
 ## The two screens
