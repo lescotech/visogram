@@ -33,6 +33,14 @@ function dropDevAssets(): Plugin {
 }
 
 export default defineConfig({
+  /**
+   * Served from a GitHub Pages project page, so the site lives under
+   * /visogram/ instead of the domain root. Vite rewrites the asset URLs it can
+   * see — index.html attributes and CSS url() — to match. Anything addressed at
+   * runtime has to rebase itself on import.meta.env.BASE_URL; see
+   * src/hero/tours.ts, where the manifest's panorama paths are.
+   */
+  base: '/visogram/',
   plugins: [dropDevAssets()],
   build: {
     target: 'es2022',

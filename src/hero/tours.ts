@@ -40,7 +40,23 @@ export interface Tour {
   lqip: string;
 }
 
-export const TOURS = data as unknown as Tour[];
+/**
+ * Rebase a manifest path onto wherever the site is actually served from.
+ *
+ * The generator writes these absolute (`/tours/foo.webp`), which is where they
+ * sit in public/. Vite rewrites that kind of path in index.html and in CSS, but
+ * not these: they arrive as JSON data and go straight to the texture loader, so
+ * there is no import for the build to rewrite. Hence doing it by hand, against
+ * the one value Vite does expose — '/' in dev, the configured base in a build.
+ */
+export const asset = (path: string): string =>
+  `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
+
+export const TOURS: Tour[] = (data as unknown as Tour[]).map((tour) => ({
+  ...tour,
+  src: asset(tour.src),
+  srcSmall: asset(tour.srcSmall),
+}));
 
 /** "São Paulo/SP · Setin" — city, state, and the client who commissioned it. */
 export function describe(tour: Tour): string {

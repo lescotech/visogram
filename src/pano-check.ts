@@ -11,7 +11,7 @@
 // origin is wrong; if the numbers climb leftwards, the sphere is mirrored.
 
 import { createPanorama } from './hero/panorama';
-import type { Tour } from './hero/tours';
+import { asset, type Tour } from './hero/tours';
 
 const probe = (yaw: number): Tour => ({
   slug: '_probe',
@@ -25,9 +25,9 @@ const probe = (yaw: number): Tour => ({
   cenas: 1,
   vista: { yaw, pitch: 0, fov: 76 },
   luma: 128,
-  src: '/tours/_probe.webp',
-  srcSmall: '/tours/_probe.webp',
-  lqip: '/tours/_probe.webp',
+  src: asset('/tours/_probe.webp'),
+  srcSmall: asset('/tours/_probe.webp'),
+  lqip: asset('/tours/_probe.webp'),
 });
 
 for (const [id, yaw] of [

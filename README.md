@@ -30,6 +30,27 @@ npm run dev
 `npm run tours` looks for the viewer at `../LESCO-VIEWER`; override with
 `LESCO_VIEWER=<path>`.
 
+## Deploying
+
+Pushing to `main` builds the page and publishes it to GitHub Pages
+(`.github/workflows/deploy.yml`) at
+<https://matheusrgoularte.github.io/visogram/>.
+
+That is a *project* page, so the site is served from `/visogram/` rather than a
+domain root, and `base` in `vite.config.ts` carries that path. Two things follow
+from it:
+
+- **`base` must match the repository name.** Rename the repo, or move to a
+  custom domain — which serves from the root — and `base` changes with it.
+- **Vite only rebases the paths it can see**: attributes in `index.html`, and
+  `url()` in the CSS. The panorama paths in `tours.json` reach the texture
+  loader as plain data, so they are rebased at runtime in `src/hero/tours.ts`
+  instead. Anything else built from a string at runtime needs the same
+  treatment — `asset()` there is the one place that knows how.
+
+`npm run preview` serves the real build under `/visogram/`, which is the only
+way to catch a base-path mistake before it ships; `npm run dev` does too.
+
 ## The two screens
 
 **Boot screen** (`.loader` in `index.html`). The status box, the "Accessing ...."
