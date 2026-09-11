@@ -290,6 +290,22 @@ around.
 A drag moves the room by the distance the finger travels — `rad(fov) / height`
 per pixel — so zooming in slows the turn to match.
 
+**Taps and drags.** Pointer capture is taken on the first move past `DRAG_SLOP`,
+never on the press, and that order matters: capture retargets the pointer's
+compatibility `click` to the capturing element, so taking it on `pointerdown`
+delivered *every* click inside the stage to the stage — a tap on a hotspot never
+reached its button and the tour would not navigate. Taking it on the first real
+move gets the other half for free: a drag that happens to finish over a marker
+ends with its click on the stage rather than on the marker. `pointerup` and
+`pointercancel` listen on the window rather than the stage, because until that
+capture exists a press can be released over the strip or the top bar.
+
+> `hidden` on anything inside the overlay needs `.v360 [hidden]` in
+> `viewer.css` to bite. The UA rule behind the attribute is weaker than any
+> author `display`, and both `.v360__spot` and `.v360__strip` set one — which is
+> how markers pointing behind the camera stayed on screen, frozen at their last
+> transform and still clickable.
+
 **Behaviour.** Esc and the browser's back gesture both close it (the overlay
 pushes one history entry and unwinds only its own). `.page` and `.body-wrap` go
 `inert` while it is up, Tab is trapped inside, focus returns to the card that

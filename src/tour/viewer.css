@@ -29,8 +29,19 @@ html[data-tour-open] body {
   overscroll-behavior: contain;
 }
 
-/* [hidden] alone loses to the layout declarations above it. */
-.v360[hidden] {
+/*
+ * [hidden] alone loses to the layout declarations these set for themselves --
+ * the UA rule behind the attribute is weaker than any author `display`. One
+ * specificity step above them and scoped to the overlay, so it stays a reset
+ * rather than a brute-force override.
+ *
+ * This is not cosmetic. `.v360__spot` sets `display: grid`, so the markers
+ * placeMarkers() hides for pointing behind the camera stayed on screen at
+ * whatever transform they last had, and stayed clickable there. `.v360__strip`
+ * sets `display: flex`, so a one-room tour still drew a strip of its one room.
+ */
+.v360[hidden],
+.v360 [hidden] {
   display: none;
 }
 

@@ -513,7 +513,11 @@ function build() {
     travelled = 0;
     velYaw = 0;
     velPitch = 0;
-    ui.stage.setPointerCapture(event.pointerId);
+    // No pointer capture here, deliberately. Capturing retargets the pointer's
+    // compatibility click to the capturing element, so taking it on every press
+    // meant every click inside the stage was delivered to the stage — a tap on
+    // a hotspot never reached the button and the tour would not navigate.
+    // onPointerMove takes the capture the moment the gesture becomes a drag.
     ui.root.dataset.grabbing = '';
     ui.hint.hidden = true;
   }
@@ -543,6 +547,14 @@ function build() {
     lastX = event.clientX;
     lastY = event.clientY;
     travelled += Math.abs(dx) + Math.abs(dy);
+
+    // Past the slop this is a drag, not a tap, so take the capture now: the
+    // room keeps following a pointer that leaves the stage, and the click the
+    // gesture ends with is delivered here rather than to whichever hotspot it
+    // happened to finish over.
+    if (travelled > DRAG_SLOP && !ui.stage.hasPointerCapture(event.pointerId)) {
+      ui.stage.setPointerCapture(event.pointerId);
+    }
 
     const k = perPixel();
     // Drag right and the room follows the finger, which means turning left.
@@ -636,8 +648,11 @@ function build() {
 
   ui.stage.addEventListener('pointerdown', onPointerDown);
   ui.stage.addEventListener('pointermove', onPointerMove);
-  ui.stage.addEventListener('pointerup', onPointerUp);
-  ui.stage.addEventListener('pointercancel', onPointerUp);
+  // On the window rather than the stage: until the drag passes the slop there
+  // is no capture holding the pointer here, so a press that ends over the scene
+  // strip or the top bar would otherwise never be told the gesture was over.
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
   ui.stage.addEventListener('wheel', onWheel, { passive: false });
   root.addEventListener('keydown', onKeyDown);
   root.addEventListener('click', (event) => {
