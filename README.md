@@ -65,13 +65,43 @@ way to catch a base-path mistake before it ships; `npm run dev` does too.
 ## The two screens
 
 **Boot screen** (`.loader` in `index.html`). The status box, the "Accessing ...."
-card, the icon column and the `Build / FPS / Ping` readouts. All of it used to
-sit in the hero, where a panel reporting `Visual operator....Ready` and a frame
-counter described a page that had already finished loading; here they describe
-something true. The arrangement is the print's own left column at its measured
-proportions, and the sequence — each label landing, then its value reporting
-back — settles at 1.91s. `LOADER_MIN` in `src/main.ts` holds the screen to 2.5s
-so it always completes; `LOADER_MAX` stops waiting at 7s no matter what.
+card, the icon column, the `Build / FPS / Ping` readouts and the wordmark. Most
+of it used to sit in the hero, where a panel reporting `Visual operator....Ready`
+and a frame counter described a page that had already finished loading; here
+they describe something true. Add `?boot` to the URL to hold the screen open —
+it is otherwise gone in 3.3s, which is long enough to watch once and far too
+short to judge.
+
+The sequence: each label lands, its value reports back a beat later, and the
+readouts settle at 1.91s. Then the wordmark writes itself on — nine outlines
+drawn in reading order, the last corner landing at 2.73s. `LOADER_MIN` in
+`src/main.ts` holds the screen to 3.3s so the sequence always completes and the
+finished composition gets a beat of its own; `LOADER_MAX` stops waiting at 7s no
+matter what. The indeterminate bar under the block waits until 3.9s, past the
+hand-over, so a loaded page never shows one: it appears only when the wait
+outlives the sequence.
+
+Two things the boot screen does that page 7 does not, both in `src/style.css`
+under *boot screen* and marked there as such:
+
+- **The right column fills the card.** The sheet's readouts sit at 250.7pt and
+  its icons stand ~16pt apart, which is right when the block is the hero's left
+  margin and leaves a third of the column empty when it is not. The readouts
+  moved down to put their last baseline on the card's foot, and the icons were
+  enlarged 1.2654× and stood 26.8pt apart to fill what that opened up. The
+  spacing is done by `spreadIcons()` in `src/main.ts`, which slides the sprite's
+  four groups down it and grows the viewBox — no icon is resized, re-drawn or
+  re-clipped.
+- **The wordmark is vertical and outlined.** A quarter turn clockwise down the
+  right-hand column, the card's height, its right edge on the readouts' own
+  right edge. It is the only place the logo is a stroke rather than a solid,
+  because the entrance *is* the stroke: `prepareLogoDraw()` puts `pathLength="1"`
+  on all nine shapes so one dash pattern fits contours from 28 to 420 units, and
+  hands each its place in the word — the file's document order is `S R V A I O M
+  · G`, and sorting by the left edge of each box recovers `VISOGRAM`.
+
+Those two are read off a reference render rather than measured off the print,
+which is the only part of either screen that is not.
 
 The overlay's ground and a CSS bail-out animation are inlined in `<head>`: the
 first painted frame has to be right before the stylesheet arrives, and if the
@@ -293,10 +323,27 @@ inline-block probe, which is unambiguous where font metrics are not):
 | status box | 24.3, 106.4, 296.4 × 70.7 | exact |
 | status row baselines | 121.3 … 166.2 | ±0.09 |
 | status row width | 272.9 | 272.61 |
-| stats baselines | 362.6 / 377.6 / 392.6 | 0.00 |
 | headline baseline | 504.0 | 504.01 |
 | "Imersive" advance | 175.8 | 175.90 |
-| boot block offsets | card 2.1/99.3, icons 181.4/98.6, stats 183.6/246.9 | exact |
+| boot block offsets | card 2.1 / 99.3 | exact |
+
+The boot screen's right-hand column has no counterpart on the sheet, so it is
+verified against itself instead — every figure block-relative, and every one of
+them a consequence of the two rules in *The two screens* rather than a number
+chosen on its own:
+
+| | intent | measured |
+| --- | --- | --- |
+| readout baselines | last one on the card's foot, 334.29 | ±0.2 |
+| icon ink | starts at the sheet's 98.85 | 98.85 |
+| icon gaps | four equal ones, the last to the readouts' cap-line | 26.82 ×3, 27.46 |
+| icons and readouts | one left edge | 175.40 / 175.40 |
+| wordmark | the card's own top and foot | 99.30 … 334.30 |
+| wordmark right edge | the readouts' right edge, 284.6 | 284.58 |
+
+Both `?boot` and the DOM probes above are how to re-check this after a change:
+the numbers in `src/style.css` are line-box tops and viewBox corners, and none
+of them is the thing that has to be true.
 
 ## Type
 

@@ -127,20 +127,67 @@ body {
   width: calc(152.9 * var(--pt));
 }
 
+/*
+ * The right-hand column fills the card rather than bunching at its top. What is
+ * below is read off the reference render, not off page 7 — the sheet has no
+ * vertical logo and puts its readouts at 250.7pt, which left a third of the
+ * column empty once the block stopped being the hero's left margin:
+ *
+ *   icons  1.2654x the sheet's size, standing 26.8pt apart instead of ~16
+ *   stats  last baseline on the card's foot, so the column closes where the
+ *          card does
+ *   logo   the card's height, right edge on the readouts' own right edge
+ *
+ * Two things do carry over. The icon ink still starts at 98.85pt, which is the
+ * sheet's own alignment — 0.45pt above the card's top edge. And the icons and
+ * the readouts still share a left edge: the sheet sets them 2.2pt apart, which
+ * at 7pt type was one edge already, and enlarging the column around its centre
+ * would have opened that to 8.2pt.
+ */
 .boot .icons {
-  left: calc(181.4 * var(--pt));
-  top: calc(98.6 * var(--pt));
+  left: calc(175.4 * var(--pt));
+  top: calc(98.53 * var(--pt));
+  width: calc(39 * var(--pt));
 }
 
 .boot .stats {
-  left: calc(183.6 * var(--pt));
-  top: calc(246.92 * var(--pt));
+  left: calc(175.4 * var(--pt));
+  /* Baselines at 304.29 / 319.29 / 334.29, the last one sitting on the card's
+     bottom edge. 8.896pt of that is the drop from the line box's top to its
+     first baseline, which is measured rather than derived: it comes out of PP
+     Supply Mono's own metrics against a 15pt line, and a fallback face would
+     put it somewhere else. */
+  top: calc(295.39 * var(--pt));
+}
+
+.boot__logo {
+  left: calc(247.6 * var(--pt));
+  top: calc(99.3 * var(--pt));
+  width: calc(36.98 * var(--pt)); /* 235 x 55.7/353.9 */
+  height: calc(235 * var(--pt));
+  color: var(--line);
+}
+
+/* Turned a quarter clockwise, so it reads down the column. The wrapper is the
+   rotated footprint and the SVG is its own way round inside it; rotating about
+   the shared centre lands one exactly in the other. Overflow stays visible
+   because the artwork fills its viewBox edge to edge and the outline's own
+   half-stroke would otherwise be clipped off the V and the M. */
+.boot__logo svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(235 * var(--pt));
+  height: calc(36.98 * var(--pt));
+  overflow: visible;
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .boot .status,
 .boot .card,
 .boot .icons,
-.boot .stats {
+.boot .stats,
+.boot__logo {
   position: absolute;
 }
 
@@ -150,8 +197,9 @@ body {
  * still image that happened to fade in. No copy is invented for this — it is
  * the print's own readouts, in order.
  *
- * The last element settles at 1.91s, and main.ts holds the screen for 2.5s, so
- * the sequence always completes and gets a beat to land before the hero.
+ * The wordmark closes it: the readouts land at 1.91s and the last letter
+ * finishes drawing at 2.73s. main.ts holds the screen for 3.3s, so the sequence
+ * always completes and the finished composition gets a beat before the hero.
  */
 .boot .status__row,
 .boot .status__row dd,
@@ -185,11 +233,50 @@ body {
   }
 }
 
+/*
+ * The wordmark is drawn rather than faded: each letter is stroked along its own
+ * contour, which is also why the boot screen is the one place the logo is an
+ * outline instead of a solid. main.ts does the two things CSS cannot — it puts
+ * pathLength="1" on every shape, so one dash pattern fits all nine whatever
+ * their real perimeter, and it hands each a reading position in --i.
+ *
+ * 1.35s is the beat the readouts land on; nine letters at 75ms and 780ms each
+ * put the M's last corner at 2.73s.
+ */
+.boot__logo :is(path, polygon, circle) {
+  fill: none;
+  stroke: currentColor;
+  /* User units, and a wordmark unit lands at 0.525 of a sprite unit on screen,
+     so 0.95 here is the sprite's own 0.5 — the two pieces of line art in the
+     column are drawn at one weight, 0.633pt. */
+  stroke-width: 0.95;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: logo-draw 780ms ease-out both;
+  animation-delay: calc(1350ms + var(--i, 0) * 75ms);
+}
+
+@keyframes logo-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+ * A loaded page hands over at 3.3s and has finished fading at 3.92s, so this
+ * never appears on a normal load: the screen the visitor is left looking at is
+ * the composition and nothing else. It fades up only when the wait outlives the
+ * sequence, which is the only time an indeterminate bar is telling the truth.
+ */
 .loader__bar {
   width: calc(296.4 * min(0.2333dvh, 0.2969vw));
   height: max(1px, 0.08vh);
   background: rgb(154 195 230 / 0.2);
   overflow: hidden;
+  opacity: 0;
+  animation: boot-in 400ms ease 3900ms both;
 }
 
 /* Indeterminate on purpose: the real wait is fonts plus a texture decode, and
@@ -224,6 +311,18 @@ body {
   .boot .icons,
   .boot .stats {
     animation: none;
+  }
+
+  /* The wordmark arrives whole, and the bar is a static rule rather than a
+     late reveal — there is no sequence left for it to outlive. */
+  .boot__logo :is(path, polygon, circle) {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .loader__bar {
+    animation: none;
+    opacity: 1;
   }
 }
 
@@ -558,8 +657,9 @@ body {
   color: var(--line);
 }
 
+/* Sized by its host, the same way the card is — on the boot screen the column
+   is enlarged past the sheet's 31.4pt to fill the card's height. */
 .icons {
-  width: calc(31.4 * var(--pt));
   color: var(--line);
 }
 

@@ -19,10 +19,11 @@ import { startFaq } from './body/faq';
 import type { Panorama } from './hero/panorama';
 
 /**
- * The boot sequence in style.css settles at 1.91s; holding to 2.5s lets it
- * complete and gives it a beat before the hero, instead of cutting it off.
+ * The boot sequence in style.css settles at 2.73s, the last letter of the
+ * wordmark finishing it off; holding to 3.3s lets it complete and gives the
+ * finished composition a beat before the hero, instead of cutting it off.
  */
-const LOADER_MIN = 2500;
+const LOADER_MIN = 3300;
 /** Above this we stop waiting, whatever is still in flight, ms. */
 const LOADER_MAX = 7000;
 
@@ -49,6 +50,72 @@ for (const [role, svg] of [
 ] as const) {
   inject(`[data-icon="${role}"]`, svg);
 }
+
+/**
+ * The boot screen's wordmark is drawn on rather than faded in, and style.css
+ * needs two things from the DOM before it can do that.
+ *
+ * `pathLength="1"` rescales every shape's own idea of its length to 1, so a
+ * single `stroke-dasharray: 1` covers all nine exactly — otherwise the M, whose
+ * contour is 420 units against the dot's 28, would need its own dash pattern.
+ *
+ * `--i` is the letter's place in the word. The file's document order is
+ * S R V A I O M · G — neither reading order nor anything else useful — but the
+ * left edge of each shape's box recovers V I S O G R A M, dot included, and the
+ * column is only a quarter-turn of that.
+ */
+function prepareLogoDraw(root: Element | null) {
+  if (!root) return;
+  [...root.querySelectorAll<SVGGeometryElement>('path, polygon, circle')]
+    .map((el) => ({ el, x: el.getBBox().x }))
+    .sort((a, b) => a.x - b.x)
+    .forEach(({ el }, i) => {
+      el.setAttribute('pathLength', '1');
+      el.style.setProperty('--i', String(i));
+    });
+}
+
+prepareLogoDraw(document.querySelector('.boot__logo'));
+
+/**
+ * The sheet stands the four icons about 16pt apart, which is right when the
+ * column is the hero's left margin and wrong on the boot screen: with the
+ * readouts moved down to the card's foot, that spacing bunched the icons into
+ * the top third and left a hole under them. This slides the groups down the
+ * sprite and grows its viewBox to match — no icon is resized, re-drawn or
+ * re-clipped, only the air between them changes, and the column keeps being one
+ * object with one copy of the artwork.
+ *
+ * Sprite units, so it survives a re-export: 21.2 of them is 26.8pt at the
+ * column's own width. Read off the reference render, not off page 7.
+ */
+const ICON_GAP = 21.2;
+
+function spreadIcons(svg: SVGSVGElement | null, gap: number) {
+  const [, , vbWidth, vbHeight] = svg?.getAttribute('viewBox')?.split(/[\s,]+/).map(Number) ?? [];
+  if (!svg || !vbWidth || !vbHeight) return;
+
+  const icons = [...svg.querySelectorAll<SVGGElement>(':scope > g > g > g')]
+    .map((g) => ({ g, box: g.getBBox() }))
+    .sort((a, b) => a.box.y - b.box.y);
+  const [first] = icons;
+  if (!first || icons.length < 2) return;
+
+  // The sprite's own top margin, reused under the last icon so the column sits
+  // in its box the way it always did.
+  const margin = first.box.y;
+  let y = margin;
+  for (const { g, box } of icons) {
+    const shift = y - box.y;
+    const existing = g.getAttribute('transform');
+    g.setAttribute('transform', `${existing ? `${existing} ` : ''}translate(0 ${shift.toFixed(3)})`);
+    y += box.height + gap;
+  }
+
+  svg.setAttribute('viewBox', `0 0 ${vbWidth} ${(y - gap + margin).toFixed(3)}`);
+}
+
+spreadIcons(document.querySelector('[data-icons] svg'), ICON_GAP);
 
 // ------------------------------------------------------------ calls to action
 
@@ -213,6 +280,10 @@ const heroReady: Promise<void> = (async () => {
 void (async () => {
   const loader = document.getElementById('loader');
   if (!loader) return;
+  // `?boot` holds the screen open. It takes itself down after 3.3s, which is
+  // long enough to watch once and far too short to judge, so this is how the
+  // composition gets looked at.
+  if (new URLSearchParams(location.search).has('boot')) return;
 
   const fonts = document.fonts ? settle(document.fonts.ready) : Promise.resolve();
 
