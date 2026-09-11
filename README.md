@@ -285,8 +285,32 @@ has doorways (20 of them); the other three were built as a set of rooms with no
 graph between them, which is why the strip, not the hotspots, is the primary way
 around.
 
+**Walking through one**, in two beats — `enter()` in `viewer.ts`:
+
+1. *The approach*, `TRAVEL` 0.55s. The camera turns onto the marker and pushes
+   `TRAVEL_PUSH` (3.5 of the sphere's 10 units) along it, so the point that was
+   clicked holds the middle of the frame and grows while the periphery streams
+   outward. That optical flow is the whole point: a cross-fade alone dissolves
+   one room into another, it does not move you through a door.
+2. *The arrival*, the existing `FADE`. The next room resolves while the camera
+   eases back to the middle and the head lifts to the horizon — looking at a
+   threshold is not how you leave one.
+
+The camera's distance from the middle is taken from the fade's own progress on
+the way back, so the two cannot drift apart, and the middle is where it stays
+the rest of the time: it is the only point at which an equirectangular sphere is
+undistorted. Steering is inert for the second it takes, so a stray drag cannot
+fight the camera halfway through a doorway, and `prefers-reduced-motion` skips
+the walk entirely for the plain cross-fade.
+
+The approach is also half a second in which nothing else is happening, so it is
+spent fetching the room. That is why `textureFor` caches promises rather than
+textures — warming on the approach and asking again when the walk lands has to
+be one request.
+
 **Knobs.** `FOV_MIN`/`FOV_MAX` 32/100, `PITCH_LIMIT` 85º, `FADE` 0.5s, `DAMPING`
-5.5 (inertia falls to 1/e in 180ms), `DRAG_SLOP` 6px, `KEY_STEP` 0.08rad.
+5.5 (inertia falls to 1/e in 180ms), `DRAG_SLOP` 6px, `KEY_STEP` 0.08rad,
+`TRAVEL` 0.55s, `TRAVEL_PUSH` 3.5 units.
 A drag moves the room by the distance the finger travels — `rad(fov) / height`
 per pixel — so zooming in slows the turn to match.
 

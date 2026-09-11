@@ -31,7 +31,7 @@ import {
 
 import './viewer.css';
 import { YAW_ORIGIN } from '../projection';
-import { findTour, place, type Scene, type TourScenes } from './scenes';
+import { findTour, place, type Hotspot, type Scene, type TourScenes } from './scenes';
 
 // ----------------------------------------------------------------- the knobs
 
@@ -46,6 +46,14 @@ const FADE = 0.5;
 const DAMPING = 5.5;
 /** Below this the drag was a click on whatever sits under the pointer. */
 const DRAG_SLOP = 6;
+/** Walking through a doorway: the approach, in seconds. */
+const TRAVEL = 0.55;
+/**
+ * How far out of the middle of the 10-unit sphere that approach carries the
+ * camera, in its units. Far enough that the step reads as one; short of where
+ * the wall's own curvature starts to smear.
+ */
+const TRAVEL_PUSH = 3.5;
 /** Arrow keys, radians per press; +/- step the fov by a fixed ratio. */
 const KEY_STEP = 0.08;
 const ZOOM_STEP = 1.18;
@@ -53,6 +61,25 @@ const ZOOM_STEP = 1.18;
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 const ease = (t: number) => 0.5 - Math.cos(Math.PI * clamp(t, 0, 1)) / 2;
 const rad = (deg: number) => (deg * Math.PI) / 180;
+
+/**
+ * The world direction the viewer's (yaw, pitch) points at: the camera's own
+ * forward when it is turned to that heading.
+ */
+const heading = (yaw: number, pitch: number) =>
+  new Vector3(
+    -Math.sin(yaw) * Math.cos(pitch),
+    Math.sin(pitch),
+    -Math.cos(yaw) * Math.cos(pitch),
+  );
+
+/**
+ * `to` written as the angle nearest `from`, so a turn takes the short way
+ * round. Yaw accumulates as the visitor drags and is never wrapped, so by the
+ * time a doorway is clicked the two can be several turns apart on paper.
+ */
+const nearestAngle = (from: number, to: number) =>
+  from + Math.atan2(Math.sin(to - from), Math.cos(to - from));
 
 const ICON = {
   close:
@@ -72,6 +99,19 @@ interface Layer {
 interface Marker {
   el: HTMLButtonElement;
   dir: Vector3;
+}
+
+/** A doorway being walked through. See `enter()`. */
+interface Walk {
+  /** Unit heading of the marker: the camera turns onto it and pushes along it. */
+  dir: Vector3;
+  fromYaw: number;
+  toYaw: number;
+  fromPitch: number;
+  toPitch: number;
+  /** 0..1 through the approach, and null once the next room has taken over. */
+  t: number | null;
+  to: Scene;
 }
 
 // ------------------------------------------------------------------ the stage
@@ -169,26 +209,39 @@ function build() {
   });
 
   const loader = new TextureLoader();
-  const cache = new Map<string, Texture>();
+  const cache = new Map<string, Promise<Texture>>();
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const saveData = Boolean(
     (navigator as { connection?: { saveData?: boolean } }).connection?.saveData,
   );
 
-  async function textureFor(url: string) {
+  /**
+   * Promises rather than textures, so a room warmed on the walk's approach and
+   * asked for again when that walk lands is one request rather than two. A
+   * rejection is dropped from the cache: the next attempt has to be able to
+   * succeed.
+   */
+  function textureFor(url: string) {
     const hit = cache.get(url);
     if (hit) return hit;
-    const texture = await loader.loadAsync(url);
-    texture.colorSpace = SRGBColorSpace;
-    texture.magFilter = LinearFilter;
-    texture.minFilter = LinearMipmapLinearFilter;
-    texture.generateMipmaps = true;
-    if (renderer) {
-      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    }
-    cache.set(url, texture);
-    return texture;
+    const pending = loader.loadAsync(url).then((texture) => {
+      texture.colorSpace = SRGBColorSpace;
+      texture.magFilter = LinearFilter;
+      texture.minFilter = LinearMipmapLinearFilter;
+      texture.generateMipmaps = true;
+      if (renderer) {
+        texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      }
+      return texture;
+    });
+    pending.catch(() => cache.delete(url));
+    cache.set(url, pending);
+    return pending;
   }
+
+  /** 2048 on a narrow viewport or under Save-Data, 4096 otherwise. */
+  const source = (scene: Scene) =>
+    window.innerWidth < 900 || saveData ? scene.srcSmall : scene.src;
 
   // -------------------------------------------------------------------- state
 
@@ -206,6 +259,9 @@ function build() {
   /** Inertia, radians per second. */
   let velYaw = 0;
   let velPitch = 0;
+
+  /** The doorway being walked through, or null when standing still. */
+  let walk: Walk | null = null;
 
   let markers: Marker[] = [];
   let buttons = new Map<string, HTMLButtonElement>();
@@ -249,13 +305,36 @@ function build() {
     }
   }
 
+  /**
+   * How far the camera stands out of the middle, as a fraction of TRAVEL_PUSH:
+   * out along the doorway on the approach, and back again on the arrival, which
+   * borrows the cross-fade's own progress so the two cannot drift apart.
+   */
+  function walkAt() {
+    if (!walk) return 0;
+    if (walk.t !== null) return ease(walk.t);
+    if (fading !== null) return 1 - ease(fading);
+    walk = null;
+    return 0;
+  }
+
   /** Push the current heading onto the camera and draw one frame. */
   function paint() {
     if (!renderer) return;
     camera.rotation.y = yaw;
     camera.rotation.x = pitch;
     camera.fov = fov;
+    // The middle of the sphere is the only place an equirectangular projection
+    // is undistorted, so the camera leaves it only to walk through a doorway.
+    const out = walkAt();
+    if (out > 0 && walk) camera.position.copy(walk.dir).multiplyScalar(out * TRAVEL_PUSH);
+    else camera.position.set(0, 0, 0);
     camera.updateProjectionMatrix();
+    // The doorways belong to the room being stood in. Mid-step they would be
+    // sliding across a wall that is dissolving, so they go with the walk and
+    // come back as it lands.
+    const dim = out > 0 ? (1 - out).toFixed(3) : '';
+    if (ui.spots.style.opacity !== dim) ui.spots.style.opacity = dim;
     placeMarkers();
     renderer.render(three, camera);
   }
@@ -267,6 +346,7 @@ function build() {
       // preview pane, a tab being captured. They get no animation frames at
       // all, so a loop is not an option: land any fade and draw once, which is
       // the honest result when nothing can be animated.
+      settleWalk();
       settleFade();
       paint();
       return;
@@ -296,9 +376,23 @@ function build() {
       }
     }
 
+    // The approach: turn onto the doorway and set off toward it. paint() takes
+    // the camera's distance from the middle out of the same progress.
+    if (walk && walk.t !== null) {
+      walk.t = Math.min(1, walk.t + dt / TRAVEL);
+      const t = ease(walk.t);
+      yaw = walk.fromYaw + (walk.toYaw - walk.fromYaw) * t;
+      pitch = walk.fromPitch + (walk.toPitch - walk.fromPitch) * t;
+      if (walk.t >= 1) land(walk);
+      moving = true;
+    }
+
     if (fading !== null) {
       fading += dt / (reduce.matches ? FADE * 0.4 : FADE);
       const t = ease(fading);
+      // Coming through: the head lifts back to the horizon as the room
+      // resolves, because looking at a threshold is not how you leave one.
+      if (walk && walk.t === null) pitch = walk.toPitch * (1 - t);
       const incoming = layers[front === 0 ? 1 : 0];
       const outgoing = layers[front];
       if (incoming) incoming.material.opacity = t;
@@ -345,12 +439,64 @@ function build() {
   }
 
   /**
+   * Walking through a doorway, in two beats.
+   *
+   * The approach turns the camera onto the marker and pushes it that way, so
+   * the point that was clicked holds the middle of the frame and grows — the
+   * optical flow of a step taken, which a cross-fade on its own cannot give.
+   * The arrival is that cross-fade: the next room resolves while the camera
+   * eases back to the middle of the sphere and lifts its head to the horizon.
+   *
+   * Steering is ignored for the second this takes, so a stray drag cannot
+   * fight the camera halfway through a doorway.
+   */
+  function enter(spot: Hotspot, destination: Scene) {
+    if (walk) return;
+    if (reduce.matches) {
+      go(destination, true);
+      return;
+    }
+    velYaw = 0;
+    velPitch = 0;
+    ui.hint.hidden = true;
+    walk = {
+      dir: heading(spot.yaw, spot.pitch),
+      fromYaw: yaw,
+      toYaw: nearestAngle(yaw, spot.yaw),
+      fromPitch: pitch,
+      toPitch: clamp(spot.pitch, -PITCH_LIMIT, PITCH_LIMIT),
+      t: 0,
+      to: destination,
+    };
+    // Half a second in which nothing else is happening: spend it fetching the
+    // room, rather than starting the fetch when the walk lands.
+    void textureFor(source(destination)).catch(() => {});
+    invalidate();
+  }
+
+  /** The approach is over — hand the room itself to `go`. */
+  function land(doorway: Walk) {
+    doorway.t = null;
+    yaw = doorway.toYaw;
+    pitch = doorway.toPitch;
+    go(doorway.to, true);
+  }
+
+  /** No frames are coming, so the approach cannot be walked: arrive at once. */
+  function settleWalk() {
+    if (walk && walk.t !== null) land(walk);
+  }
+
+  /**
    * @param keepView true when the visitor walked through a doorway — they keep
    *   facing the way they were. A jump from the strip lands on the framing the
    *   scene was composed at instead.
    */
   function go(scene: Scene, keepView: boolean, immediate = false) {
     if (!tour || current === scene) return;
+    // A jump from the strip abandons a walk: the camera belongs in the middle
+    // of the room that was asked for, not part-way through someone's doorway.
+    if (!keepView) walk = null;
     const first = current === null;
     current = scene;
     settleFade();
@@ -382,9 +528,8 @@ function build() {
       })
       .catch(() => {});
 
-    const small = window.innerWidth < 900 || saveData;
     showWait(true);
-    void textureFor(small ? scene.srcSmall : scene.src)
+    void textureFor(source(scene))
       .then((texture) => {
         if (incoming.scene !== scene) return;
         incoming.material.map = texture;
@@ -435,19 +580,10 @@ function build() {
       el.className = 'v360__spot';
       el.innerHTML = `${ICON.spot}<span>${destination.nome}</span>`;
       el.setAttribute('aria-label', `Ir para ${destination.nome}`);
-      el.addEventListener('click', () => go(destination, true));
+      el.addEventListener('click', () => enter(spot, destination));
       ui.spots.append(el);
-      markers.push({
-        el,
-        // The world direction the viewer's (yaw, pitch) points at: the camera's
-        // own forward when it is turned to that heading. Radius 9, so the
-        // marker sits just inside the sphere.
-        dir: new Vector3(
-          -Math.sin(spot.yaw) * Math.cos(spot.pitch),
-          Math.sin(spot.pitch),
-          -Math.cos(spot.yaw) * Math.cos(spot.pitch),
-        ).multiplyScalar(9),
-      });
+      // Radius 9, so the marker sits just inside the sphere.
+      markers.push({ el, dir: heading(spot.yaw, spot.pitch).multiplyScalar(9) });
     }
     // Placed before the first paint, or they all flash at the top-left corner.
     placeMarkers();
@@ -498,6 +634,8 @@ function build() {
   const perPixel = () => rad(fov) / Math.max(1, ui.stage.clientHeight);
 
   function onPointerDown(event: PointerEvent) {
+    // Nothing to steer while the camera is walking through a doorway.
+    if (walk) return;
     touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (touches.size === 2) {
       const [a, b] = [...touches.values()];
@@ -587,6 +725,7 @@ function build() {
 
   function onWheel(event: WheelEvent) {
     event.preventDefault();
+    if (walk) return;
     // deltaMode 1 counts lines rather than pixels.
     const step = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
     fov = clamp(fov * Math.exp(step * 0.0012), FOV_MIN, FOV_MAX);
@@ -611,7 +750,7 @@ function build() {
     }
     // Steering answers to the stage only; the strip and the top bar keep their
     // own keyboard behaviour.
-    if (event.target !== ui.canvas) return;
+    if (event.target !== ui.canvas || walk) return;
     const steps: Record<string, () => void> = {
       ArrowLeft: () => (yaw -= KEY_STEP),
       ArrowRight: () => (yaw += KEY_STEP),
@@ -695,9 +834,9 @@ function build() {
     if (tour?.slug !== next.slug) {
       // Thirteen megabytes of panorama across the four tours. Holding one
       // tour's worth is reasonable; holding every tour someone browsed is not.
-      for (const [url, texture] of cache) {
+      for (const [url, pending] of cache) {
         if (url.startsWith('data:')) continue;
-        texture.dispose();
+        void pending.then((texture) => texture.dispose()).catch(() => {});
         cache.delete(url);
       }
       tour = next;
