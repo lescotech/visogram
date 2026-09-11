@@ -46,14 +46,24 @@ const FADE = 0.5;
 const DAMPING = 5.5;
 /** Below this the drag was a click on whatever sits under the pointer. */
 const DRAG_SLOP = 6;
-/** Walking through a doorway: the approach, in seconds. */
-const TRAVEL = 0.55;
 /**
- * How far out of the middle of the 10-unit sphere that approach carries the
- * camera, in its units. Far enough that the step reads as one; short of where
- * the wall's own curvature starts to smear.
+ * Walking through a doorway, in seconds: the whole move, from the middle of one
+ * room to the middle of the next. The cross-fade is its last FADE.
+ */
+const TRAVEL = 1;
+/**
+ * How far that move carries the camera, in the sphere's own 10 units — the
+ * distance between the two rooms, in effect. Far enough that the step reads as
+ * one; short of where the wall's curvature starts to smear.
  */
 const TRAVEL_PUSH = 3.5;
+/**
+ * A doorway is walked at, but never at more than this far off the horizon.
+ * Radians, 20º. Three of Biotique's twenty markers sit lower than that and one
+ * is at 39º: aimed at exactly, that one lands you in the next room looking at
+ * the floor.
+ */
+const ARRIVE_TILT = 0.35;
 /** Arrow keys, radians per press; +/- step the fov by a fixed ratio. */
 const KEY_STEP = 0.08;
 const ZOOM_STEP = 1.18;
@@ -103,15 +113,17 @@ interface Marker {
 
 /** A doorway being walked through. See `enter()`. */
 interface Walk {
-  /** Unit heading of the marker: the camera turns onto it and pushes along it. */
+  /** Unit heading of the marker: the camera turns onto it and travels along it. */
   dir: Vector3;
   fromYaw: number;
   toYaw: number;
   fromPitch: number;
   toPitch: number;
-  /** 0..1 through the approach, and null once the next room has taken over. */
-  t: number | null;
+  /** 0..1 across the whole move. */
+  t: number;
   to: Scene;
+  /** Set once the next room has been handed to `go` and its cross-fade started. */
+  handed: boolean;
 }
 
 // ------------------------------------------------------------------ the stage
@@ -306,16 +318,27 @@ function build() {
   }
 
   /**
-   * How far the camera stands out of the middle, as a fraction of TRAVEL_PUSH:
-   * out along the doorway on the approach, and back again on the arrival, which
-   * borrows the cross-fade's own progress so the two cannot drift apart.
+   * Where the two rooms sit while one is being walked out of and the other into.
+   *
+   * The camera never moves: it stays at the origin, which is the only point at
+   * which an equirectangular sphere is undistorted, and the rooms slide past it
+   * instead. The one being left goes backwards; the one being entered starts
+   * TRAVEL_PUSH ahead and comes to rest around the camera exactly as the
+   * cross-fade finishes. Both move the same way at the same rate, so the whole
+   * thing is one forward movement with nothing to come back from — moving the
+   * camera out and easing it back would be a second, opposite motion, and read
+   * as a zoom out on arrival.
    */
-  function walkAt() {
-    if (!walk) return 0;
-    if (walk.t !== null) return ease(walk.t);
-    if (fading !== null) return 1 - ease(fading);
-    walk = null;
-    return 0;
+  function placeRooms() {
+    if (!walk) {
+      for (const layer of layers) layer.mesh.position.set(0, 0, 0);
+      return;
+    }
+    const x = TRAVEL_PUSH * ease(walk.t);
+    const incoming = layers[front === 0 ? 1 : 0];
+    const outgoing = layers[front];
+    outgoing?.mesh.position.copy(walk.dir).multiplyScalar(-x);
+    incoming?.mesh.position.copy(walk.dir).multiplyScalar(TRAVEL_PUSH - x);
   }
 
   /** Push the current heading onto the camera and draw one frame. */
@@ -324,16 +347,13 @@ function build() {
     camera.rotation.y = yaw;
     camera.rotation.x = pitch;
     camera.fov = fov;
-    // The middle of the sphere is the only place an equirectangular projection
-    // is undistorted, so the camera leaves it only to walk through a doorway.
-    const out = walkAt();
-    if (out > 0 && walk) camera.position.copy(walk.dir).multiplyScalar(out * TRAVEL_PUSH);
-    else camera.position.set(0, 0, 0);
     camera.updateProjectionMatrix();
+    placeRooms();
     // The doorways belong to the room being stood in. Mid-step they would be
-    // sliding across a wall that is dissolving, so they go with the walk and
-    // come back as it lands.
-    const dim = out > 0 ? (1 - out).toFixed(3) : '';
+    // sliding across a wall that is dissolving, so they dip out and come back
+    // for the room arrived in — at their dimmest around the hand-over, which is
+    // where drawMarkers swaps one room's set for the other's.
+    const dim = walk ? (1 - Math.sin(Math.PI * walk.t)).toFixed(3) : '';
     if (ui.spots.style.opacity !== dim) ui.spots.style.opacity = dim;
     placeMarkers();
     renderer.render(three, camera);
@@ -376,23 +396,25 @@ function build() {
       }
     }
 
-    // The approach: turn onto the doorway and set off toward it. paint() takes
-    // the camera's distance from the middle out of the same progress.
-    if (walk && walk.t !== null) {
+    // The walk: turn onto the doorway and travel through it. placeRooms() takes
+    // the rooms' own positions out of the same progress.
+    if (walk) {
       walk.t = Math.min(1, walk.t + dt / TRAVEL);
       const t = ease(walk.t);
       yaw = walk.fromYaw + (walk.toYaw - walk.fromYaw) * t;
       pitch = walk.fromPitch + (walk.toPitch - walk.fromPitch) * t;
-      if (walk.t >= 1) land(walk);
-      moving = true;
+      // The cross-fade is the move's last FADE, so the room resolves as the
+      // camera comes into the middle of it rather than after it has stopped.
+      if (!walk.handed && walk.t >= 1 - FADE / TRAVEL) {
+        walk.handed = true;
+        go(walk.to, true);
+      }
+      if (walk.t < 1) moving = true;
     }
 
     if (fading !== null) {
       fading += dt / (reduce.matches ? FADE * 0.4 : FADE);
       const t = ease(fading);
-      // Coming through: the head lifts back to the horizon as the room
-      // resolves, because looking at a threshold is not how you leave one.
-      if (walk && walk.t === null) pitch = walk.toPitch * (1 - t);
       const incoming = layers[front === 0 ? 1 : 0];
       const outgoing = layers[front];
       if (incoming) incoming.material.opacity = t;
@@ -406,6 +428,10 @@ function build() {
         }
         front = front === 0 ? 1 : 0;
         fading = null;
+        // The walk ends here and not a frame earlier: `front` has just flipped,
+        // and placeRooms() reads it. The room arrived in is already at rest at
+        // the origin by this point, so there is nothing to snap back.
+        walk = null;
       } else {
         moving = true;
       }
@@ -439,16 +465,19 @@ function build() {
   }
 
   /**
-   * Walking through a doorway, in two beats.
+   * Walking through a doorway: one movement, from the middle of the room being
+   * left to the middle of the one being entered.
    *
-   * The approach turns the camera onto the marker and pushes it that way, so
-   * the point that was clicked holds the middle of the frame and grows — the
-   * optical flow of a step taken, which a cross-fade on its own cannot give.
-   * The arrival is that cross-fade: the next room resolves while the camera
-   * eases back to the middle of the sphere and lifts its head to the horizon.
+   * The camera turns onto the marker and then travels along that heading, so
+   * the point that was clicked holds the middle of the frame and grows while
+   * everything around it streams outward. That optical flow is the whole of it
+   * — it is what going somewhere looks like, and a cross-fade cannot produce
+   * it. The fade is the last FADE of the same move, so the next room resolves
+   * around a camera that is still coming to rest in it rather than after one
+   * that has stopped. Nothing reverses: see placeRooms().
    *
-   * Steering is ignored for the second this takes, so a stray drag cannot
-   * fight the camera halfway through a doorway.
+   * Steering is ignored for the second this takes, so a stray drag cannot fight
+   * the camera halfway through a doorway.
    */
   function enter(spot: Hotspot, destination: Scene) {
     if (walk) return;
@@ -459,32 +488,33 @@ function build() {
     velYaw = 0;
     velPitch = 0;
     ui.hint.hidden = true;
+    // The heading walked is the heading arrived on, so a marker near the floor
+    // is approached from slightly above it rather than dived at.
+    const toPitch = clamp(spot.pitch, -ARRIVE_TILT, ARRIVE_TILT);
     walk = {
-      dir: heading(spot.yaw, spot.pitch),
+      dir: heading(spot.yaw, toPitch),
       fromYaw: yaw,
       toYaw: nearestAngle(yaw, spot.yaw),
       fromPitch: pitch,
-      toPitch: clamp(spot.pitch, -PITCH_LIMIT, PITCH_LIMIT),
+      toPitch,
       t: 0,
       to: destination,
+      handed: false,
     };
     // Half a second in which nothing else is happening: spend it fetching the
-    // room, rather than starting the fetch when the walk lands.
+    // room, rather than starting the fetch when the fade wants it.
     void textureFor(source(destination)).catch(() => {});
     invalidate();
   }
 
-  /** The approach is over — hand the room itself to `go`. */
-  function land(doorway: Walk) {
-    doorway.t = null;
-    yaw = doorway.toYaw;
-    pitch = doorway.toPitch;
-    go(doorway.to, true);
-  }
-
-  /** No frames are coming, so the approach cannot be walked: arrive at once. */
+  /** No frames are coming, so the walk cannot be taken: arrive at once. */
   function settleWalk() {
-    if (walk && walk.t !== null) land(walk);
+    if (!walk) return;
+    const { to, handed } = walk;
+    yaw = walk.toYaw;
+    pitch = walk.toPitch;
+    walk = null;
+    if (!handed) go(to, true);
   }
 
   /**

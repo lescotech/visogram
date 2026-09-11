@@ -285,32 +285,48 @@ has doorways (20 of them); the other three were built as a set of rooms with no
 graph between them, which is why the strip, not the hotspots, is the primary way
 around.
 
-**Walking through one**, in two beats — `enter()` in `viewer.ts`:
+**Walking through one** — `enter()` in `viewer.ts`. One movement, `TRAVEL` 1s,
+from the middle of the room being left to the middle of the one being entered.
+The camera turns onto the marker and travels along that heading, so the point
+that was clicked holds the middle of the frame and grows while everything around
+it streams outward. That optical flow is the whole of it: a cross-fade dissolves
+one room into another, it does not take you anywhere. The fade is the move's
+last `FADE`, so the next room resolves around a camera still coming to rest in
+it rather than one that has already stopped.
 
-1. *The approach*, `TRAVEL` 0.55s. The camera turns onto the marker and pushes
-   `TRAVEL_PUSH` (3.5 of the sphere's 10 units) along it, so the point that was
-   clicked holds the middle of the frame and grows while the periphery streams
-   outward. That optical flow is the whole point: a cross-fade alone dissolves
-   one room into another, it does not move you through a door.
-2. *The arrival*, the existing `FADE`. The next room resolves while the camera
-   eases back to the middle and the head lifts to the horizon — looking at a
-   threshold is not how you leave one.
+**Nothing reverses**, and `placeRooms()` is where that is arranged. The camera
+never moves at all — it stays at the origin, the only point at which an
+equirectangular sphere is undistorted — and the two spheres slide past it
+instead: the room being left goes backwards, the room being entered starts
+`TRAVEL_PUSH` (3.5 of the sphere's 10 units) ahead and comes to rest around the
+camera exactly as the fade ends. Both move the same way at the same rate, so
+their separation is constant and the whole thing is one forward travel. Pushing
+the camera out and easing it back would be a second, opposite motion, and reads
+as a zoom out on arrival.
 
-The camera's distance from the middle is taken from the fade's own progress on
-the way back, so the two cannot drift apart, and the middle is where it stays
-the rest of the time: it is the only point at which an equirectangular sphere is
-undistorted. Steering is inert for the second it takes, so a stray drag cannot
-fight the camera halfway through a doorway, and `prefers-reduced-motion` skips
-the walk entirely for the plain cross-fade.
+A marker is aimed at, but never at more than `ARRIVE_TILT` off the horizon:
+three of Biotique's twenty sit lower than 20º and one is at 39º, and aimed at
+exactly, that one lands you in the next room looking at the floor.
 
-The approach is also half a second in which nothing else is happening, so it is
-spent fetching the room. That is why `textureFor` caches promises rather than
-textures — warming on the approach and asking again when the walk lands has to
-be one request.
+Steering is inert for the second it takes, so a stray drag cannot fight the
+camera halfway through a doorway; a strip jump mid-walk drops it and re-centres
+both rooms; and `prefers-reduced-motion` skips the walk entirely for the plain
+cross-fade.
+
+The first half is also time in which nothing else is happening, so it is spent
+fetching the room. That is why `textureFor` caches promises rather than textures
+— warming at the start of the walk and asking again when the fade wants it has
+to be one request.
+
+> Verified by tracing both rooms' positions frame by frame: `outgoing` rises
+> 0 → 3.49 and `incoming` falls 3.49 → 0 monotonically, summing to `TRAVEL_PUSH`
+> throughout, with zero reversals in either. Note the Browser pane throttles
+> `requestAnimationFrame` to about 1Hz and reports `document.hidden`, which
+> sends `invalidate()` down its settle path — animation cannot be judged there.
 
 **Knobs.** `FOV_MIN`/`FOV_MAX` 32/100, `PITCH_LIMIT` 85º, `FADE` 0.5s, `DAMPING`
 5.5 (inertia falls to 1/e in 180ms), `DRAG_SLOP` 6px, `KEY_STEP` 0.08rad,
-`TRAVEL` 0.55s, `TRAVEL_PUSH` 3.5 units.
+`TRAVEL` 1s, `TRAVEL_PUSH` 3.5 units, `ARRIVE_TILT` 20º.
 A drag moves the room by the distance the finger travels — `rad(fov) / height`
 per pixel — so zooming in slows the turn to match.
 
